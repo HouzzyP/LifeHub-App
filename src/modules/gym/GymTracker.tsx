@@ -1,94 +1,134 @@
-import React, { useState, useEffect } from 'react';
-import { db, type WorkoutSession, type Exercise } from '../../db/db';
+import React, { useState, useEffect, useCallback } from 'react';
+import { db, type Routine, type Exercise } from '../../db/db';
 import { ExerciseLibrary } from './components/ExerciseLibrary';
-import { Play, Plus, Calculator, Check, ArrowLeft } from 'lucide-react';
+import { seedExercises } from './seedExercises';
+import { Plus, ChevronLeft, Trash2, Dumbbell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export const GymTracker: React.FC = () => {
-    const [view, setView] = useState<'home' | 'active_workout' | 'exercises'>('home');
-    const [activeRoutine, setActiveRoutine] = useState<Partial<WorkoutSession> | null>(null);
-    const [exercises, setExercises] = useState<Exercise[]>([]);
-    const [duration, setDuration] = useState(0);
+type GymView = 'routines' | 'create_routine' | 'routine_detail' | 'exercises' | 'session';
 
-    useEffect(() => {
-        const load = async () => {
-            const exs = await db.exercises.toArray();
-            setExercises(exs);
-        };
-        load();
+export const GymTracker: React.FC = () => {
+    const [view, setView] = useState<GymView>('routines');
+    const [routines, setRoutines] = useState<Routine[]>([]);
+    const [exercises, setExercises] = useState<Exercise[]>([]);
+    const [selectedRoutine, setSelectedRoutine] = useState<Routine | null>(null);
+
+    // Create routine state
+    const [newRoutineName, setNewRoutineName] = useState('');
+    const [selectedExerciseIds, setSelectedExerciseIds] = useState<number[]>([]);
+
+    // Session state (when training)
+    const [sessionData, setSessionData] = useState<Record<number, { weight: number; reps: number }>>({});
+
+    const loadData = useCallback(async () => {
+        await seedExercises();
+        const [allRoutines, allExercises] = await Promise.all([
+            db.routines.toArray(),
+            db.exercises.orderBy('name').toArray()
+        ]);
+        setRoutines(allRoutines);
+        setExercises(allExercises);
     }, []);
 
-    // Timer for active workout
     useEffect(() => {
-        let interval: any;
-        if (view === 'active_workout') {
-            interval = setInterval(() => setDuration(d => d + 1), 1000);
-        } else {
-            setDuration(0);
-        }
-        return () => clearInterval(interval);
-    }, [view]);
+        loadData();
+    }, [loadData]);
 
-    const startWorkout = (name: string = 'New Workout') => {
-        setActiveRoutine({
-            routineName: name,
+    const getExerciseName = useCallback((id: number) => {
+        return exercises.find(e => e.id === id)?.name ?? 'Unknown';
+    }, [exercises]);
+
+    const getExerciseCategory = useCallback((id: number) => {
+        return exercises.find(e => e.id === id)?.category ?? '';
+    }, [exercises]);
+
+    // --- Create Routine ---
+    const toggleExerciseSelection = (id: number) => {
+        setSelectedExerciseIds(prev =>
+            prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+        );
+    };
+
+    const saveRoutine = async () => {
+        if (!newRoutineName.trim() || selectedExerciseIds.length === 0) return;
+        await db.routines.add({
+            name: newRoutineName.trim(),
+            exercises: selectedExerciseIds.map(id => ({ exerciseId: id }))
+        });
+        setNewRoutineName('');
+        setSelectedExerciseIds([]);
+        await loadData();
+        setView('routines');
+    };
+
+    const deleteRoutine = async (id: number) => {
+        await db.routines.delete(id);
+        await loadData();
+        if (selectedRoutine?.id === id) {
+            setSelectedRoutine(null);
+            setView('routines');
+        }
+    };
+
+    // --- Session ---
+    const startSession = (routine: Routine) => {
+        setSelectedRoutine(routine);
+        const initial: Record<number, { weight: number; reps: number }> = {};
+        for (const ex of routine.exercises) {
+            initial[ex.exerciseId] = {
+                weight: ex.targetWeight ?? 0,
+                reps: ex.targetReps ?? 0,
+            };
+        }
+        setSessionData(initial);
+        setView('session');
+    };
+
+    const updateSessionField = (exId: number, field: 'weight' | 'reps', value: number) => {
+        setSessionData(prev => ({
+            ...prev,
+            [exId]: { ...prev[exId], [field]: value }
+        }));
+    };
+
+    const saveSession = async () => {
+        if (!selectedRoutine) return;
+        // Update target weight/reps on the routine for next time
+        const updatedExercises = selectedRoutine.exercises.map(ex => ({
+            ...ex,
+            targetWeight: sessionData[ex.exerciseId]?.weight ?? ex.targetWeight,
+            targetReps: sessionData[ex.exerciseId]?.reps ?? ex.targetReps,
+        }));
+        await db.routines.update(selectedRoutine.id!, { exercises: updatedExercises });
+
+        // Also save as a session record
+        await db.sessions.add({
+            routineName: selectedRoutine.name,
             date: Date.now(),
-            exercises: []
+            exercises: selectedRoutine.exercises.map(ex => ({
+                exerciseId: ex.exerciseId,
+                sets: [{
+                    weight: sessionData[ex.exerciseId]?.weight ?? 0,
+                    reps: sessionData[ex.exerciseId]?.reps ?? 0,
+                    completed: true
+                }]
+            }))
         });
-        setView('active_workout');
+
+        await loadData();
+        setView('routines');
+        setSelectedRoutine(null);
     };
 
-    const addExerciseToRoutine = (exId: number) => {
-        if (!activeRoutine) return;
-        const newExercises = [...(activeRoutine.exercises || [])];
-        newExercises.push({
-            exerciseId: exId,
-            sets: [{ reps: 0, weight: 0, completed: false }]
-        });
-        setActiveRoutine({ ...activeRoutine, exercises: newExercises });
-    };
-
-    const updateSet = (exIndex: number, setIndex: number, field: 'reps' | 'weight' | 'completed', value: any) => {
-        if (!activeRoutine?.exercises) return;
-        const newExercises = [...activeRoutine.exercises];
-        const set = newExercises[exIndex].sets[setIndex];
-        // @ts-ignore
-        set[field] = value;
-        setActiveRoutine({ ...activeRoutine, exercises: newExercises });
-    };
-
-    const addSet = (exIndex: number) => {
-        if (!activeRoutine?.exercises) return;
-        const newExercises = [...activeRoutine.exercises];
-        const previousSet = newExercises[exIndex].sets[newExercises[exIndex].sets.length - 1];
-        newExercises[exIndex].sets.push({
-            reps: previousSet?.reps || 0,
-            weight: previousSet?.weight || 0,
-            completed: false
-        });
-        setActiveRoutine({ ...activeRoutine, exercises: newExercises });
-    };
-
-    const finishWorkout = async () => {
-        if (activeRoutine && activeRoutine.exercises && activeRoutine.exercises.length > 0) {
-            await db.sessions.add(activeRoutine as WorkoutSession);
-        }
-        setView('home');
-        setActiveRoutine(null);
-    };
-
-    const formatTime = (seconds: number) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
-    };
-
+    // --- Exercise Library View ---
     if (view === 'exercises') {
         return (
             <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ padding: '20px', display: 'flex', alignItems: 'center' }}>
-                    <button onClick={() => setView('home')} style={{ background: 'none', border: 'none', color: 'var(--accent)', marginRight: '10px' }}>Back</button>
-                    <h2>Exercises</h2>
+                <div style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <button onClick={() => setView('routines')} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer' }}>
+                        <ChevronLeft size={24} />
+                    </button>
+                    <h2 style={{ fontSize: '20px' }}>Exercise Library</h2>
                 </div>
                 <div style={{ flex: 1, overflow: 'hidden' }}>
                     <ExerciseLibrary />
@@ -97,137 +137,213 @@ export const GymTracker: React.FC = () => {
         );
     }
 
-    if (view === 'active_workout') {
+    // --- Create Routine View ---
+    if (view === 'create_routine') {
+        const groupedExercises = exercises.reduce<Record<string, Exercise[]>>((acc, ex) => {
+            if (!acc[ex.category]) acc[ex.category] = [];
+            acc[ex.category].push(ex);
+            return acc;
+        }, {});
+
         return (
-            <div style={{ padding: '20px', paddingBottom: '100px', height: '100%', overflowY: 'auto' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <div>
-                        <h2 style={{ fontSize: '24px', fontWeight: 700 }}>{activeRoutine?.routineName}</h2>
-                        <span style={{ color: 'var(--accent)', fontFamily: 'monospace', fontSize: '18px' }}>{formatTime(duration)}</span>
-                    </div>
-                    <button onClick={finishWorkout} className="premium-button" style={{ fontSize: '14px', padding: '8px 16px' }}>Finish</button>
+            <div style={{ padding: '20px', paddingBottom: '120px', overflowY: 'auto' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                    <button onClick={() => setView('routines')} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer' }}>
+                        <ChevronLeft size={24} />
+                    </button>
+                    <h2 style={{ fontSize: '20px' }}>New Routine</h2>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                    {activeRoutine?.exercises?.map((routineEx, exIndex) => {
-                        const exerciseDef = exercises.find(e => e.id === routineEx.exerciseId);
-                        return (
-                            <motion.div
-                                key={exIndex}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="glass-container"
-                                style={{ padding: '20px' }}
-                            >
-                                <h3 style={{ marginBottom: '16px', color: 'var(--accent)' }}>{exerciseDef?.name}</h3>
-                                <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 1fr 40px', gap: '10px', marginBottom: '10px', fontSize: '12px', color: 'var(--text-dim)', textAlign: 'center' }}>
-                                    <span>Set</span>
-                                    <span>kg</span>
-                                    <span>Reps</span>
-                                    <span>✓</span>
-                                </div>
-                                {routineEx.sets.map((set, setIndex) => (
-                                    <div key={setIndex} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 1fr 40px', gap: '10px', marginBottom: '10px', alignItems: 'center' }}>
-                                        <span style={{ textAlign: 'center', color: 'var(--text-dim)' }}>{setIndex + 1}</span>
-                                        <input
-                                            type="number"
-                                            value={set.weight || ''}
-                                            onChange={(e) => updateSet(exIndex, setIndex, 'weight', Number(e.target.value))}
-                                            placeholder="0"
-                                            style={{ background: 'var(--bg-secondary)', border: 'none', borderRadius: '8px', padding: '8px', textAlign: 'center', color: 'white' }}
-                                        />
-                                        <input
-                                            type="number"
-                                            value={set.reps || ''}
-                                            onChange={(e) => updateSet(exIndex, setIndex, 'reps', Number(e.target.value))}
-                                            placeholder="0"
-                                            style={{ background: 'var(--bg-secondary)', border: 'none', borderRadius: '8px', padding: '8px', textAlign: 'center', color: 'white' }}
-                                        />
-                                        <button
-                                            onClick={() => updateSet(exIndex, setIndex, 'completed', !set.completed)}
-                                            style={{
-                                                background: set.completed ? 'var(--accent)' : 'var(--bg-secondary)',
-                                                border: 'none', borderRadius: '8px', height: '32px', cursor: 'pointer',
-                                                display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                            }}
-                                        >
-                                            {set.completed && <CheckIcon size={16} />}
-                                        </button>
-                                    </div>
-                                ))}
-                                <button
-                                    onClick={() => addSet(exIndex)}
-                                    style={{ width: '100%', padding: '10px', background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: '8px', color: 'var(--text-dim)', marginTop: '10px', cursor: 'pointer' }}
-                                >
-                                    + Add Set
-                                </button>
-                            </motion.div>
-                        );
-                    })}
+                <div style={{ marginBottom: '24px' }}>
+                    <label style={{ fontSize: '14px', color: 'var(--text-dim)', display: 'block', marginBottom: '8px' }}>Routine Name</label>
+                    <input
+                        autoFocus
+                        value={newRoutineName}
+                        onChange={(e) => setNewRoutineName(e.target.value)}
+                        placeholder='e.g. "Chest Day", "Push", "Day 1"'
+                        style={{
+                            width: '100%', padding: '14px', background: 'var(--bg-glass)',
+                            border: '1px solid var(--glass-border)', borderRadius: '12px',
+                            color: 'white', fontSize: '16px'
+                        }}
+                    />
                 </div>
 
-                <div style={{ marginTop: '24px' }}>
-                    <h3 style={{ marginBottom: '12px', fontSize: '16px' }}>Add Exercise</h3>
-                    <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '10px' }}>
-                        {exercises.slice(0, 5).map(ex => (
-                            <button
-                                key={ex.id}
-                                onClick={() => addExerciseToRoutine(ex.id!)}
-                                className="glass-container"
-                                style={{ padding: '12px 20px', minWidth: '120px', textAlign: 'left', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.1)' }}
-                            >
-                                <span style={{ display: 'block', fontSize: '14px', fontWeight: 600 }}>{ex.name}</span>
-                                <span style={{ display: 'block', fontSize: '10px', color: 'var(--text-dim)' }}>{ex.category}</span>
-                            </button>
-                        ))}
-                        <button
-                            onClick={() => {/* Open full picker - simplified for now */ }}
-                            className="glass-container"
-                            style={{ padding: '12px', minWidth: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                        >
-                            <Plus size={20} />
-                        </button>
+                <h3 style={{ fontSize: '16px', marginBottom: '16px' }}>Select Exercises</h3>
+                {Object.entries(groupedExercises).map(([category, exs]) => (
+                    <div key={category} style={{ marginBottom: '20px' }}>
+                        <h4 style={{ fontSize: '12px', color: 'var(--accent)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '1px' }}>{category}</h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {exs.map(ex => {
+                                const isSelected = selectedExerciseIds.includes(ex.id!);
+                                return (
+                                    <motion.button
+                                        key={ex.id}
+                                        whileTap={{ scale: 0.97 }}
+                                        onClick={() => toggleExerciseSelection(ex.id!)}
+                                        className="glass-container"
+                                        style={{
+                                            padding: '14px 16px', textAlign: 'left', cursor: 'pointer',
+                                            border: isSelected ? '1px solid var(--accent)' : '1px solid transparent',
+                                            background: isSelected ? 'rgba(56, 189, 248, 0.1)' : undefined,
+                                            display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                                        }}
+                                    >
+                                        <span style={{ fontWeight: 500 }}>{ex.name}</span>
+                                        {isSelected ? (
+                                            <span style={{ color: 'var(--accent)', fontSize: '14px', fontWeight: 700 }}>✓</span>
+                                        ) : null}
+                                    </motion.button>
+                                );
+                            })}
+                        </div>
                     </div>
-                </div>
+                ))}
+
+                {selectedExerciseIds.length > 0 ? (
+                    <motion.button
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        onClick={saveRoutine}
+                        className="premium-button"
+                        style={{ width: '100%', padding: '16px', position: 'fixed', bottom: '100px', left: '20px', right: '20px', maxWidth: 'calc(100% - 40px)' }}
+                    >
+                        Create Routine ({selectedExerciseIds.length} exercises)
+                    </motion.button>
+                ) : null}
             </div>
         );
     }
 
-    // Home View
+    // --- Session View (Training!) ---
+    if (view === 'session' && selectedRoutine) {
+        return (
+            <div style={{ padding: '20px', paddingBottom: '120px', overflowY: 'auto' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                    <button onClick={() => setView('routines')} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer' }}>
+                        <ChevronLeft size={24} />
+                    </button>
+                    <h2 style={{ fontSize: '20px' }}>{selectedRoutine.name}</h2>
+                </div>
+                <p style={{ color: 'var(--text-dim)', fontSize: '14px', marginBottom: '24px' }}>Fill in your weight & reps for today.</p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {selectedRoutine.exercises.map((routineEx) => (
+                        <motion.div
+                            key={routineEx.exerciseId}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="glass-container"
+                            style={{ padding: '20px' }}
+                        >
+                            <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '4px' }}>{getExerciseName(routineEx.exerciseId)}</h3>
+                            <span style={{ fontSize: '11px', color: 'var(--text-dim)', display: 'block', marginBottom: '16px' }}>{getExerciseCategory(routineEx.exerciseId)}</span>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                <div>
+                                    <label style={{ fontSize: '12px', color: 'var(--text-dim)', display: 'block', marginBottom: '4px' }}>Weight (kg)</label>
+                                    <input
+                                        type="number"
+                                        value={sessionData[routineEx.exerciseId]?.weight || ''}
+                                        onChange={(e) => updateSessionField(routineEx.exerciseId, 'weight', Number(e.target.value))}
+                                        placeholder="0"
+                                        style={{
+                                            width: '100%', padding: '12px', background: 'var(--bg-secondary)',
+                                            border: 'none', borderRadius: '10px', textAlign: 'center',
+                                            color: 'white', fontSize: '18px', fontWeight: 700
+                                        }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ fontSize: '12px', color: 'var(--text-dim)', display: 'block', marginBottom: '4px' }}>Reps</label>
+                                    <input
+                                        type="number"
+                                        value={sessionData[routineEx.exerciseId]?.reps || ''}
+                                        onChange={(e) => updateSessionField(routineEx.exerciseId, 'reps', Number(e.target.value))}
+                                        placeholder="0"
+                                        style={{
+                                            width: '100%', padding: '12px', background: 'var(--bg-secondary)',
+                                            border: 'none', borderRadius: '10px', textAlign: 'center',
+                                            color: 'white', fontSize: '18px', fontWeight: 700
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+
+                <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={saveSession}
+                    className="premium-button"
+                    style={{ width: '100%', padding: '16px', marginTop: '24px' }}
+                >
+                    Save Session
+                </motion.button>
+            </div>
+        );
+    }
+
+    // --- Routines Home ---
     return (
         <div style={{ padding: '24px' }}>
-            <h2 style={{ fontSize: '32px', fontWeight: 800, marginBottom: '24px' }}>Gym<span style={{ color: 'var(--accent)' }}>Tracker</span></h2>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '32px' }}>
-                <button
-                    onClick={() => startWorkout()}
-                    className="premium-button"
-                    style={{ height: '120px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px' }}
-                >
-                    <Play size={32} fill="currentColor" />
-                    <span>Start Empty Workout</span>
-                </button>
-                <button
-                    onClick={() => setView('exercises')}
-                    className="glass-container"
-                    style={{ height: '120px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', cursor: 'pointer' }}
-                >
-                    <Calculator size={32} color="var(--accent)" />
-                    <span>Exercise Library</span>
-                </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <h2 style={{ fontSize: '28px', fontWeight: 800 }}>
+                    Gym<span style={{ color: 'var(--accent)' }}>Tracker</span>
+                </h2>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                        onClick={() => setView('exercises')}
+                        className="glass-container"
+                        style={{ padding: '10px', cursor: 'pointer', borderRadius: '12px' }}
+                    >
+                        <Dumbbell size={20} />
+                    </button>
+                    <button
+                        onClick={() => setView('create_routine')}
+                        className="premium-button"
+                        style={{ padding: '10px', borderRadius: '12px' }}
+                    >
+                        <Plus size={20} />
+                    </button>
+                </div>
             </div>
 
-            <h3 style={{ marginBottom: '16px', color: 'var(--text-dim)' }}>Recent Routines</h3>
-            <div className="glass-container" style={{ padding: '40px', textAlign: 'center' }}>
-                <p style={{ color: 'var(--text-dim)' }}>No recent workouts. Start training!</p>
-            </div>
+            <h3 style={{ fontSize: '14px', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '16px' }}>My Routines</h3>
+
+            {routines.length === 0 ? (
+                <div className="glass-container" style={{ padding: '40px', textAlign: 'center' }}>
+                    <Dumbbell size={40} style={{ color: 'var(--text-dim)', marginBottom: '12px' }} />
+                    <p style={{ color: 'var(--text-dim)' }}>No routines yet. Create your first one!</p>
+                </div>
+            ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {routines.map(routine => (
+                        <motion.div
+                            key={routine.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="glass-container"
+                            style={{ padding: '20px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                        >
+                            <div onClick={() => startSession(routine)} style={{ flex: 1 }}>
+                                <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '4px' }}>{routine.name}</h3>
+                                <p style={{ fontSize: '12px', color: 'var(--text-dim)' }}>
+                                    {routine.exercises.length} exercises — {routine.exercises.map(e => getExerciseName(e.exerciseId)).join(', ')}
+                                </p>
+                            </div>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); deleteRoutine(routine.id!); }}
+                                style={{ background: 'none', border: 'none', color: 'rgba(248, 113, 113, 0.7)', cursor: 'pointer', padding: '8px' }}
+                            >
+                                <Trash2 size={18} />
+                            </button>
+                        </motion.div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 };
-
-// Helper Icon
-const CheckIcon = ({ size }: { size: number }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="20 6 9 17 4 12" />
-    </svg>
-);

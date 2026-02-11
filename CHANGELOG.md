@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 
 ## [2026-02-11]
+### Changed
+- **Gym Tracker**: Complete redesign from live-session tracker to **Routine Manager**.
+  - Create named routines (e.g., "Chest Day") with selected exercises.
+  - Start a session from a routine, fill in weight/reps per exercise.
+  - Weight/reps auto-saved as defaults for the next session.
+- **Database**: Added `Routine` table (Dexie v2 migration).
+- Applied **Vercel React best practices**: `useCallback`, `Promise.all`, ternary conditionals, functional `setState`.
+
+### Added
+- Git repository initialized with initial commit.
+
+## [2026-02-11] (earlier)
 ### Added
 - **Gym Tracker Module**: Exercise Library with search, filter by category, and custom exercise creation.
 - **Gym Workout Flow**: Start empty workout, add exercises, record sets (weight/reps), finish and save session.
