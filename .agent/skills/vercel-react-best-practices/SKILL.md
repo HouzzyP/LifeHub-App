@@ -1,6 +1,6 @@
 ---
 name: vercel-react-best-practices
-description: React and Next.js performance optimization guidelines from Vercel Engineering. This skill should be used when writing, reviewing, or refactoring React/Next.js code to ensure optimal performance patterns. Triggers on tasks involving React components, Next.js pages, data fetching, bundle optimization, or performance improvements.
+description: "MANDATORY — You MUST read this file BEFORE writing or modifying ANY .tsx/.jsx file. Non-negotiable. React and Next.js performance optimization rules from Vercel Engineering."
 license: MIT
 metadata:
   author: vercel
@@ -8,6 +8,26 @@ metadata:
 ---
 
 # Vercel React Best Practices
+
+> [!CAUTION]
+> **MANDATORY SKILL** — You MUST read this file and apply ALL applicable rules BEFORE writing or modifying any React component (.tsx/.jsx). Do NOT rely on memory. Do NOT skip this step.
+
+## When This Skill MUST Be Applied
+- Creating a new `.tsx` or `.jsx` file
+- Modifying an existing `.tsx` or `.jsx` file
+- Reviewing React code for any reason
+- Any refactoring that touches component logic
+
+## Enforcement
+After writing code, verify EVERY item in this checklist:
+- [ ] `useCallback` for functions passed as props or used in dependency arrays
+- [ ] `Promise.all()` for 2+ independent async operations
+- [ ] Ternary `condition ? <A/> : null` — NEVER `condition && <A/>`
+- [ ] Functional `setState(prev => ...)` when new state depends on previous
+- [ ] Static arrays/objects hoisted OUTSIDE the component
+- [ ] No barrel-file imports (`import { X } from './index'`)
+- [ ] Early returns before the main JSX render
+
 
 Comprehensive performance optimization guide for React and Next.js applications, maintained by Vercel. Contains 57 rules across 8 categories, prioritized by impact to guide automated refactoring and code generation.
 

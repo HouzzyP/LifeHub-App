@@ -1,9 +1,18 @@
 ---
 name: local-first-data
-description: Best practices for local-first data management with Dexie.js (IndexedDB) in the LifeHub PWA. Use when creating new data models, adding database tables, querying data, or managing offline persistence.
+description: "MANDATORY — You MUST read this file BEFORE creating or modifying ANY Dexie.js database code, queries, or data models. Non-negotiable. Best practices for local-first data management."
 ---
 
 # Local-First Data — Dexie.js Best Practices
+
+> [!CAUTION]
+> **MANDATORY SKILL** — You MUST read this file and apply ALL rules BEFORE writing any database queries, schema changes, or data-layer code. Do NOT rely on memory. Do NOT skip this step.
+
+## When This Skill MUST Be Applied
+- Creating or modifying `db.ts` (schema, interfaces, migrations)
+- Writing any `db.table.*` query in a component
+- Adding seed data or bulk operations
+- Any code that reads from or writes to IndexedDB
 
 This skill defines patterns for managing persistent local data in LifeHub using **Dexie.js** (IndexedDB wrapper).
 
