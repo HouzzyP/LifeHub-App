@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [2026-02-11]
 ### Changed
+- **Dashboard**: Redesigned from app grid to **widget-based summary view**.
+  - Habits widget with animated progress ring and today's habit list (max 4).
+  - Gym widget showing routine count and last session details.
+  - Quick Access row for upcoming modules (Notes, Finance, Water, Focus).
+  - Applied Vercel best practices: hoisted static data, ternary conditionals, `Promise.all`.
+
+## [2026-02-11] (Gym Redesign)
+### Changed
 - **Gym Tracker**: Complete redesign from live-session tracker to **Routine Manager**.
   - Create named routines (e.g., "Chest Day") with selected exercises.
   - Start a session from a routine, fill in weight/reps per exercise.

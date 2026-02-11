@@ -1,42 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
     LayoutDashboard,
     Dumbbell,
     CheckCircle2,
-    StickyNote,
-    Wallet,
-    Droplets,
-    Timer,
-    Settings as SettingsIcon,
-    Plus
+    Settings as SettingsIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './styles/main.css';
 
+import { Dashboard } from './modules/dashboard/Dashboard';
 import { HabitDashboard } from './modules/habits/HabitDashboard';
 import { GymTracker } from './modules/gym/GymTracker';
 
 // Types for our mini-apps
 type AppModule = 'dashboard' | 'gym' | 'habits' | 'notes' | 'finance' | 'water' | 'focus';
 
-interface AppConfig {
-    id: AppModule;
-    name: string;
-    icon: React.ReactNode;
-    color: string;
-}
-
-const apps: AppConfig[] = [
-    { id: 'habits', name: 'Habit Tracker', icon: <CheckCircle2 size={24} />, color: '#38bdf8' },
-    { id: 'gym', name: 'Gym Tracker', icon: <Dumbbell size={24} />, color: '#818cf8' },
-    { id: 'notes', name: 'Notes', icon: <StickyNote size={24} />, color: '#fbbf24' },
-    { id: 'finance', name: 'Finance', icon: <Wallet size={24} />, color: '#34d399' },
-    { id: 'water', name: 'Water', icon: <Droplets size={24} />, color: '#60a5fa' },
-    { id: 'focus', name: 'Focus', icon: <Timer size={24} />, color: '#f87171' },
-];
-
 function App() {
     const [activeApp, setActiveApp] = useState<AppModule>('dashboard');
+
+    const handleNavigate = useCallback((module: string) => {
+        setActiveApp(module as AppModule);
+    }, []);
 
     return (
         <div className="app-container">
@@ -61,37 +45,8 @@ function App() {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="app-grid"
                         >
-                            {apps.map((app, index) => (
-                                <motion.div
-                                    key={app.id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: index * 0.05 }}
-                                    className="glass-container module-card"
-                                    onClick={() => setActiveApp(app.id)}
-                                >
-                                    <div className="icon-wrapper" style={{ background: `linear-gradient(135deg, ${app.color}, #1e293b)` }}>
-                                        {app.icon}
-                                    </div>
-                                    <h3 style={{ fontSize: '16px', fontWeight: 600 }}>{app.name}</h3>
-                                </motion.div>
-                            ))}
-
-                            {/* Custom Add App Card */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: (apps.length + 1) * 0.05 }}
-                                className="glass-container module-card"
-                                style={{ borderStyle: 'dashed', background: 'transparent' }}
-                            >
-                                <div className="icon-wrapper" style={{ background: 'var(--bg-glass)', color: 'var(--text-dim)' }}>
-                                    <Plus size={24} />
-                                </div>
-                                <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-dim)' }}>Add App</h3>
-                            </motion.div>
+                            <Dashboard onNavigate={handleNavigate} />
                         </motion.div>
                     ) : (
                         <motion.div
