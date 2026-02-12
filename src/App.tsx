@@ -3,7 +3,13 @@ import {
     LayoutDashboard,
     Dumbbell,
     CheckCircle2,
-    Settings as SettingsIcon
+    MoreHorizontal,
+    StickyNote,
+    Wallet,
+    Droplets,
+    Timer,
+    Settings as SettingsIcon,
+    X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './styles/main.css';
@@ -15,11 +21,34 @@ import { GymTracker } from './modules/gym/GymTracker';
 // Types for our mini-apps
 type AppModule = 'dashboard' | 'gym' | 'habits' | 'notes' | 'finance' | 'water' | 'focus';
 
+// Hoisted outside component — rendering-hoist-jsx
+const MORE_MODULES: { id: AppModule; name: string; icon: React.ReactNode; color: string; ready: boolean }[] = [
+    { id: 'notes', name: 'Notes', icon: <StickyNote size={22} />, color: '#fbbf24', ready: false },
+    { id: 'finance', name: 'Finance', icon: <Wallet size={22} />, color: '#34d399', ready: false },
+    { id: 'water', name: 'Water', icon: <Droplets size={22} />, color: '#60a5fa', ready: false },
+    { id: 'focus', name: 'Focus', icon: <Timer size={22} />, color: '#f87171', ready: false },
+    { id: 'notes' as AppModule, name: 'Settings', icon: <SettingsIcon size={22} />, color: '#94a3b8', ready: false },
+];
+
 function App() {
     const [activeApp, setActiveApp] = useState<AppModule>('dashboard');
+    const [showMore, setShowMore] = useState(false);
 
     const handleNavigate = useCallback((module: string) => {
         setActiveApp(module as AppModule);
+    }, []);
+
+    const handleMoreSelect = useCallback((module: AppModule) => {
+        setActiveApp(module);
+        setShowMore(false);
+    }, []);
+
+    const toggleMore = useCallback(() => {
+        setShowMore(prev => !prev);
+    }, []);
+
+    const closeMore = useCallback(() => {
+        setShowMore(false);
     }, []);
 
     return (
@@ -80,12 +109,125 @@ function App() {
                 </AnimatePresence>
             </main>
 
+            {/* More Bottom Sheet */}
+            <AnimatePresence>
+                {showMore ? (
+                    <>
+                        {/* Backdrop */}
+                        <motion.div
+                            key="more-backdrop"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={closeMore}
+                            style={{
+                                position: 'fixed',
+                                inset: 0,
+                                background: 'rgba(0, 0, 0, 0.5)',
+                                backdropFilter: 'blur(4px)',
+                                zIndex: 200
+                            }}
+                        />
+                        {/* Sheet */}
+                        <motion.div
+                            key="more-sheet"
+                            initial={{ y: '100%' }}
+                            animate={{ y: 0 }}
+                            exit={{ y: '100%' }}
+                            transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+                            className="glass-container"
+                            style={{
+                                position: 'fixed',
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                zIndex: 300,
+                                borderBottomLeftRadius: 0,
+                                borderBottomRightRadius: 0,
+                                padding: '24px 20px 40px'
+                            }}
+                        >
+                            {/* Sheet header */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                <h3 style={{ fontSize: '18px', fontWeight: 700 }}>More Modules</h3>
+                                <motion.button
+                                    onClick={closeMore}
+                                    whileTap={{ scale: 0.9 }}
+                                    style={{
+                                        background: 'var(--bg-glass)',
+                                        border: '1px solid var(--glass-border)',
+                                        borderRadius: '12px',
+                                        padding: '8px',
+                                        color: 'var(--text-dim)',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    <X size={18} />
+                                </motion.button>
+                            </div>
+
+                            {/* Module list */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                {MORE_MODULES.map(mod => (
+                                    <motion.button
+                                        key={mod.name}
+                                        onClick={() => mod.ready ? handleMoreSelect(mod.id) : null}
+                                        whileTap={mod.ready ? { scale: 0.98 } : undefined}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '14px',
+                                            padding: '14px 16px',
+                                            borderRadius: '16px',
+                                            background: 'rgba(255,255,255,0.02)',
+                                            border: '1px solid var(--glass-border)',
+                                            color: mod.ready ? 'var(--text-main)' : 'var(--text-dim)',
+                                            opacity: mod.ready ? 1 : 0.5,
+                                            cursor: mod.ready ? 'pointer' : 'default',
+                                            width: '100%',
+                                            textAlign: 'left',
+                                            transition: 'all 0.2s ease'
+                                        }}
+                                    >
+                                        <div style={{
+                                            width: '40px',
+                                            height: '40px',
+                                            borderRadius: '12px',
+                                            background: `linear-gradient(135deg, ${mod.color}, #1e293b)`,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            flexShrink: 0
+                                        }}>
+                                            {mod.icon}
+                                        </div>
+                                        <span style={{ fontSize: '15px', fontWeight: 500 }}>{mod.name}</span>
+                                        {mod.ready ? null : (
+                                            <span style={{
+                                                marginLeft: 'auto',
+                                                fontSize: '11px',
+                                                padding: '3px 8px',
+                                                borderRadius: '8px',
+                                                background: 'rgba(255,255,255,0.05)',
+                                                color: 'var(--text-dim)'
+                                            }}>
+                                                Soon
+                                            </span>
+                                        )}
+                                    </motion.button>
+                                ))}
+                            </div>
+                        </motion.div>
+                    </>
+                ) : null}
+            </AnimatePresence>
+
             {/* Navigation Bar */}
             <nav className="navbar">
                 <NavItem active={activeApp === 'dashboard'} onClick={() => setActiveApp('dashboard')} icon={<LayoutDashboard size={24} />} label="Hub" />
                 <NavItem active={activeApp === 'habits'} onClick={() => setActiveApp('habits')} icon={<CheckCircle2 size={24} />} label="Habits" />
                 <NavItem active={activeApp === 'gym'} onClick={() => setActiveApp('gym')} icon={<Dumbbell size={24} />} label="Gym" />
-                <NavItem active={false} onClick={() => { }} icon={<SettingsIcon size={24} />} label="Setup" />
+                <NavItem active={showMore} onClick={toggleMore} icon={<MoreHorizontal size={24} />} label="More" />
             </nav>
         </div>
     );
@@ -101,18 +243,19 @@ function NavItem({ active, onClick, icon, label }: { active: boolean, onClick: (
                 alignItems: 'center',
                 gap: '4px',
                 color: active ? 'var(--accent)' : 'var(--text-dim)',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                position: 'relative'
             }}
             whileTap={{ scale: 0.9 }}
         >
             {icon}
             <span style={{ fontSize: '10px', fontWeight: 500 }}>{label}</span>
-            {active && (
+            {active ? (
                 <motion.div
                     layoutId="nav-glow"
                     style={{
                         position: 'absolute',
-                        bottom: '10px',
+                        bottom: '-6px',
                         width: '4px',
                         height: '4px',
                         borderRadius: '50%',
@@ -120,7 +263,7 @@ function NavItem({ active, onClick, icon, label }: { active: boolean, onClick: (
                         boxShadow: '0 0 10px var(--accent)'
                     }}
                 />
-            )}
+            ) : null}
         </motion.div>
     );
 }
