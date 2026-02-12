@@ -15,6 +15,7 @@ description: MANDATORY pre-coding checklist. Run this workflow BEFORE writing or
 | Any `.tsx` or `.jsx` file | `vercel-react-best-practices/SKILL.md` |
 | Any UI component, styles, or visual elements | `premium-ui/SKILL.md` |
 | Any database query, table, or Dexie code | `local-first-data/SKILL.md` |
+| When splitting or refactoring a component | `component-refactoring/SKILL.md` |
 
 ### 2. Read the applicable SKILL.md files
 
