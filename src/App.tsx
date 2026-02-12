@@ -17,13 +17,14 @@ import './styles/main.css';
 import { Dashboard } from './modules/dashboard/Dashboard';
 import { HabitDashboard } from './modules/habits/HabitDashboard';
 import { GymTracker } from './modules/gym/GymTracker';
+import { NotesDashboard } from './modules/notes/NotesDashboard';
 
 // Types for our mini-apps
 type AppModule = 'dashboard' | 'gym' | 'habits' | 'notes' | 'finance' | 'water' | 'focus';
 
 // Hoisted outside component — rendering-hoist-jsx
 const MORE_MODULES: { id: AppModule; name: string; icon: React.ReactNode; color: string; ready: boolean }[] = [
-    { id: 'notes', name: 'Notes', icon: <StickyNote size={22} />, color: '#fbbf24', ready: false },
+    { id: 'notes', name: 'Notes', icon: <StickyNote size={22} />, color: '#fbbf24', ready: true },
     { id: 'finance', name: 'Finance', icon: <Wallet size={22} />, color: '#34d399', ready: false },
     { id: 'water', name: 'Water', icon: <Droplets size={22} />, color: '#60a5fa', ready: false },
     { id: 'focus', name: 'Focus', icon: <Timer size={22} />, color: '#f87171', ready: false },
@@ -88,6 +89,8 @@ function App() {
                                 <HabitDashboard />
                             ) : activeApp === 'gym' ? (
                                 <GymTracker />
+                            ) : activeApp === 'notes' ? (
+                                <NotesDashboard />
                             ) : (
                                 <div style={{ padding: '24px' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>

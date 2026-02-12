@@ -35,6 +35,10 @@ export interface Note {
     id?: number;
     title: string;
     content: string;
+    category: string;
+    isPinned: boolean;
+    isFavorite: boolean;
+    createdAt: number;
     updatedAt: number;
 }
 
@@ -66,6 +70,9 @@ export class LifeHubDB extends Dexie {
         });
         this.version(2).stores({
             routines: '++id, name'
+        });
+        this.version(3).stores({
+            notes: '++id, title, category, updatedAt, isPinned'
         });
     }
 }

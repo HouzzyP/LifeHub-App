@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2026-02-11]
+## [2026-02-11] (Notes Module)
+### Added
+- **Notes Module (Advanced)**: Full note-taking with markdown preview, auto-save, pin/favorite, category filters, search.
+  - `NotesDashboard.tsx`: search bar, category chips, pinned section, NoteCard sub-component.
+  - `NoteEditor.tsx`: markdown rendering (bold/italic/headers/lists/code), debounced auto-save, pin/fav toggles.
+  - Extended `Note` interface with `category`, `isPinned`, `isFavorite`, `createdAt`. DB version 3.
+
+## [2026-02-11] (Dashboard)
 ### Changed
 - **Dashboard**: Redesigned from app grid to **widget-based summary view**.
   - Habits widget with animated progress ring and today's habit list (max 4).
