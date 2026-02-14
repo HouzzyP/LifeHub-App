@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Download, ChevronDown, ChevronUp } from 'lucide-react'
 import { useDeviceDetection } from '../hooks/useDeviceDetection'
+import { usePWAInstall } from '../hooks/usePWAInstall'
 
 /**
  * Simple install guide - shows how to add to home screen
@@ -8,11 +9,12 @@ import { useDeviceDetection } from '../hooks/useDeviceDetection'
  */
 export function SmartInstallGuide() {
     const device = useDeviceDetection()
+    const { canInstall, install, isInstalled } = usePWAInstall()
     const [isExpanded, setIsExpanded] = useState(false)
 
     // Check if it's a mobile device and not already installed as app
     const isMobile = device.platform === 'android' || device.platform === 'ios'
-    const isAlreadyInstalled = device.isStandalone
+    const isAlreadyInstalled = device.isStandalone || isInstalled
 
     if (!isMobile || isAlreadyInstalled) return null
 
@@ -23,11 +25,7 @@ export function SmartInstallGuide() {
             'Toca el botón Compartir (↗)',
             'Selecciona "Agregar a pantalla de inicio"'
         ]
-        : [
-            'Toca los 3 puntos (⋮) arriba a la derecha',
-            'Selecciona "Agregar a la pantalla principal"',
-            '¡Listo! LifeHub aparecerá en tu pantalla de inicio'
-        ]
+        : []
 
     return (
         <div className="fixed bottom-20 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:max-w-md z-40 animate-in fade-in slide-in-from-bottom-2">
@@ -38,7 +36,7 @@ export function SmartInstallGuide() {
             >
                 <div className="flex items-center gap-2">
                     <Download className="w-4 h-4 text-white flex-shrink-0" />
-                    <span className="text-sm font-medium text-white">Agregar a pantalla de inicio</span>
+                    <span className="text-sm font-medium text-white">Instalar LifeHub</span>
                 </div>
                 {isExpanded ? (
                     <ChevronUp className="w-4 h-4 text-white" />
@@ -47,17 +45,29 @@ export function SmartInstallGuide() {
                 )}
             </button>
 
-            {/* Expanded Content - Only steps, no button confusion */}
+            {/* Expanded Content */}
             {isExpanded && (
                 <div className="mt-2 p-4 bg-slate-900 rounded-lg border border-blue-400/20 shadow-lg space-y-3">
-                    <div className="space-y-2">
-                        {instructions.map((step, idx) => (
-                            <div key={idx} className="flex gap-3">
-                                <span className="text-blue-400 font-bold flex-shrink-0 w-6">{idx + 1}.</span>
-                                <p className="text-sm text-slate-300">{step}</p>
-                            </div>
-                        ))}
-                    </div>
+                    {device.platform === 'android' && (
+                        <button
+                            onClick={install}
+                            disabled={!canInstall}
+                            className="w-full px-3 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-sm font-medium rounded-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Instalar Ahora
+                        </button>
+                    )}
+
+                    {instructions.length > 0 && (
+                        <div className="space-y-2">
+                            {instructions.map((step, idx) => (
+                                <div key={idx} className="flex gap-3">
+                                    <span className="text-blue-400 font-bold flex-shrink-0 w-6">{idx + 1}.</span>
+                                    <p className="text-sm text-slate-300">{step}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
 
                     {/* Close Button */}
                     <button
