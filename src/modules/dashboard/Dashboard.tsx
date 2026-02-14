@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { db, type Habit, type Routine, type WorkoutSession } from '../../db/db';
 import { CheckCircle2, Circle, Dumbbell, ChevronRight, Wallet, Droplets, Timer } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { USER_CONFIG, getGreeting, TIME_LABELS, MODULE_NAMES } from '../../constants/ui';
 
 interface DashboardProps {
     onNavigate: (module: string) => void;
@@ -44,18 +45,10 @@ const ProgressRing: React.FC<{ progress: number; size?: number; strokeWidth?: nu
     );
 };
 
-// Time-based greeting
-const getGreeting = (): string => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
-};
-
 const QUICK_ACCESS_MODULES = [
-    { id: 'finance', name: 'Finance', icon: <Wallet size={20} />, color: '#34d399' },
-    { id: 'water', name: 'Water', icon: <Droplets size={20} />, color: '#60a5fa' },
-    { id: 'focus', name: 'Focus', icon: <Timer size={20} />, color: '#f87171' },
+    { id: 'finance', name: MODULE_NAMES.finance, icon: <Wallet size={20} />, color: '#34d399' },
+    { id: 'water', name: MODULE_NAMES.water, icon: <Droplets size={20} />, color: '#60a5fa' },
+    { id: 'focus', name: MODULE_NAMES.focus, icon: <Timer size={20} />, color: '#f87171' },
 ];
 
 export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
@@ -90,9 +83,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         const diffMs = now.getTime() - date.getTime();
         const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-        if (diffDays === 0) return 'Today';
-        if (diffDays === 1) return 'Yesterday';
-        if (diffDays < 7) return `${diffDays} days ago`;
+        if (diffDays === 0) return TIME_LABELS.today;
+        if (diffDays === 1) return TIME_LABELS.yesterday;
+        if (diffDays < 7) return TIME_LABELS.daysAgo(diffDays);
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     };
 
@@ -104,7 +97,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                 animate={{ opacity: 1 }}
                 style={{ color: 'var(--text-dim)', fontSize: '14px', marginTop: '4px' }}
             >
-                {getGreeting()}, Juanpi 👋
+                {getGreeting()}, {USER_CONFIG.name} 👋
             </motion.p>
 
             {/* Habits Widget */}

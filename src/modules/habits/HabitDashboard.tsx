@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { HabitCard } from './components/HabitCard';
 import { HabitProgressBar } from './components/HabitProgressBar';
 import { AddHabitModal } from './components/AddHabitModal';
+import { PROGRESS_MESSAGES, UI_MESSAGES } from '../../constants/ui';
 
 export const HabitDashboard: React.FC = () => {
     const [habits, setHabits] = useState<Habit[]>([]);
@@ -82,8 +83,8 @@ export const HabitDashboard: React.FC = () => {
                     </h2>
                     <p style={{ color: 'var(--text-dim)', fontSize: '14px' }}>
                         {totalHabits > 0
-                            ? `${completedToday}/${totalHabits} completed today`
-                            : 'No habits yet'
+                            ? PROGRESS_MESSAGES.completedToday(completedToday, totalHabits)
+                            : UI_MESSAGES.noHabits
                         }
                     </p>
                 </div>

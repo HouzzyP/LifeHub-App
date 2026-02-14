@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { INSTALL_MESSAGES } from '../constants/ui'
 
 interface BeforeInstallPromptEvent extends Event {
     prompt: () => Promise<void>
@@ -82,13 +83,7 @@ export function usePWAInstall() {
             await install()
         } else {
             // beforeinstallprompt didn't fire, show manual instructions
-            alert(
-                'Para instalar LifeHub:\n\n' +
-                '1. Abre el menú (⋮) arriba a la derecha en Chrome\n' +
-                '2. Selecciona "Instalar aplicación" o "Instalar LifeHub"\n' +
-                '3. Confirma\n\n' +
-                '¡La app aparecerá en tu pantalla de inicio!'
-            )
+            alert(INSTALL_MESSAGES.fallbackInstructions)
         }
     }
 

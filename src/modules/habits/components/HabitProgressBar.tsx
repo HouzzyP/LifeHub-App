@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { PROGRESS_MESSAGES } from '../../../constants/ui';
 
 interface HabitProgressBarProps {
     completedToday: number;
@@ -14,7 +15,7 @@ export const HabitProgressBar: React.FC<HabitProgressBarProps> = ({ completedTod
     return (
         <div className="glass-container" style={{ padding: '16px 20px', marginBottom: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ fontSize: '13px', color: 'var(--text-dim)', fontWeight: 500 }}>Today's Progress</span>
+                <span style={{ fontSize: '13px', color: 'var(--text-dim)', fontWeight: 500 }}>{PROGRESS_MESSAGES.todayProgress}</span>
                 <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--accent)' }}>{Math.round(progress)}%</span>
             </div>
             <div style={{

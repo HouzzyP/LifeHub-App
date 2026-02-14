@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './styles/main.css';
+import { USER_CONFIG, GREETINGS, NAV_LABELS, UI_MESSAGES } from './constants/ui';
 
 import { Dashboard } from './modules/dashboard/Dashboard';
 import { HabitDashboard } from './modules/habits/HabitDashboard';
@@ -68,7 +69,7 @@ function App() {
                 >
                     Life<span style={{ color: 'var(--accent)' }}>Hub</span>
                 </motion.h1>
-                <p style={{ color: 'var(--text-dim)', marginTop: '4px' }}>Welcome back, Juanpi</p>
+                <p style={{ color: 'var(--text-dim)', marginTop: '4px' }}>{GREETINGS.welcome}, {USER_CONFIG.name}</p>
             </header>
 
             {/* Main Content Area */}
@@ -103,12 +104,12 @@ function App() {
                                             onClick={() => setActiveApp('dashboard')}
                                             style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', padding: 0 }}
                                         >
-                                            Back
+                                            {NAV_LABELS.back}
                                         </button>
                                         <h2 style={{ fontSize: '24px', textTransform: 'capitalize' }}>{activeApp}</h2>
                                     </div>
                                     <div className="glass-container" style={{ padding: '40px', textAlign: 'center' }}>
-                                        <p style={{ color: 'var(--text-dim)' }}>Work in progress: {activeApp} module is coming soon.</p>
+                                        <p style={{ color: 'var(--text-dim)' }}>{UI_MESSAGES.workInProgress(activeApp)}</p>
                                     </div>
                                 </div>
                             )}
@@ -157,7 +158,7 @@ function App() {
                         >
                             {/* Sheet header */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                                <h3 style={{ fontSize: '18px', fontWeight: 700 }}>More Modules</h3>
+                                <h3 style={{ fontSize: '18px', fontWeight: 700 }}>{UI_MESSAGES.moreModules}</h3>
                                 <motion.button
                                     onClick={closeMore}
                                     whileTap={{ scale: 0.9 }}
@@ -219,7 +220,7 @@ function App() {
                                                 background: 'rgba(255,255,255,0.05)',
                                                 color: 'var(--text-dim)'
                                             }}>
-                                                Soon
+                                                {UI_MESSAGES.comingSoon}
                                             </span>
                                         )}
                                     </motion.button>
@@ -235,10 +236,10 @@ function App() {
 
             {/* Navigation Bar */}
             <nav className="navbar">
-                <NavItem active={activeApp === 'dashboard'} onClick={() => setActiveApp('dashboard')} icon={<LayoutDashboard size={24} />} label="Hub" />
-                <NavItem active={activeApp === 'habits'} onClick={() => setActiveApp('habits')} icon={<CheckCircle2 size={24} />} label="Habits" />
-                <NavItem active={activeApp === 'gym'} onClick={() => setActiveApp('gym')} icon={<Dumbbell size={24} />} label="Gym" />
-                <NavItem active={showMore} onClick={toggleMore} icon={<MoreHorizontal size={24} />} label="More" />
+                <NavItem active={activeApp === 'dashboard'} onClick={() => setActiveApp('dashboard')} icon={<LayoutDashboard size={24} />} label={NAV_LABELS.hub} />
+                <NavItem active={activeApp === 'habits'} onClick={() => setActiveApp('habits')} icon={<CheckCircle2 size={24} />} label={NAV_LABELS.habits} />
+                <NavItem active={activeApp === 'gym'} onClick={() => setActiveApp('gym')} icon={<Dumbbell size={24} />} label={NAV_LABELS.gym} />
+                <NavItem active={showMore} onClick={toggleMore} icon={<MoreHorizontal size={24} />} label={NAV_LABELS.more} />
             </nav>
         </div>
     );
