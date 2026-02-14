@@ -8,10 +8,32 @@
  * - Maintain consistency across the app
  */
 
-// User Configuration
-export const USER_CONFIG = {
-    name: 'Juanpi', // Change this to personalize the app
+// ============================================
+// USER CONFIGURATION
+// ============================================
+
+/**
+ * Get user's name from localStorage or return default prompt
+ * Users can set their name in Settings (future feature)
+ */
+export const getUserName = (): string => {
+    const storedName = localStorage.getItem('userName');
+    if (storedName && storedName.trim()) {
+        return storedName;
+    }
+    return 'User'; // Default fallback
 };
+
+/**
+ * Save user's name to localStorage
+ */
+export const setUserName = (name: string): void => {
+    localStorage.setItem('userName', name.trim());
+};
+
+// ============================================
+// GREETINGS
+// ============================================
 
 // Greetings
 export const GREETINGS = {
@@ -21,11 +43,16 @@ export const GREETINGS = {
     welcome: 'Welcome back',
 };
 
-// Time-based greeting function
+/**
+ * Get time-based greeting using local device time
+ * Morning: 5:00 - 11:59
+ * Afternoon: 12:00 - 17:59
+ * Evening: 18:00 - 4:59
+ */
 export const getGreeting = (): string => {
     const hour = new Date().getHours();
-    if (hour < 12) return GREETINGS.morning;
-    if (hour < 18) return GREETINGS.afternoon;
+    if (hour >= 5 && hour < 12) return GREETINGS.morning;
+    if (hour >= 12 && hour < 18) return GREETINGS.afternoon;
     return GREETINGS.evening;
 };
 

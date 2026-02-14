@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './styles/main.css';
-import { USER_CONFIG, GREETINGS, NAV_LABELS, UI_MESSAGES } from './constants/ui';
+import { getUserName, GREETINGS, NAV_LABELS, UI_MESSAGES } from './constants/ui';
 
 import { Dashboard } from './modules/dashboard/Dashboard';
 import { HabitDashboard } from './modules/habits/HabitDashboard';
@@ -21,6 +21,7 @@ import { GymTracker } from './modules/gym/GymTracker';
 import { NotesDashboard } from './modules/notes/NotesDashboard';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { SmartInstallGuide } from './components/SmartInstallGuide';
+import { WelcomeModal } from './components/WelcomeModal';
 
 // Types for our mini-apps
 type AppModule = 'dashboard' | 'gym' | 'habits' | 'notes' | 'finance' | 'water' | 'focus';
@@ -57,6 +58,9 @@ function App() {
 
     return (
         <div className="app-container">
+            {/* Welcome Modal - First time setup */}
+            <WelcomeModal />
+
             {/* Offline Indicator */}
             <OfflineIndicator />
 
@@ -69,7 +73,7 @@ function App() {
                 >
                     Life<span style={{ color: 'var(--accent)' }}>Hub</span>
                 </motion.h1>
-                <p style={{ color: 'var(--text-dim)', marginTop: '4px' }}>{GREETINGS.welcome}, {USER_CONFIG.name}</p>
+                <p style={{ color: 'var(--text-dim)', marginTop: '4px' }}>{GREETINGS.welcome}, {getUserName()}</p>
             </header>
 
             {/* Main Content Area */}

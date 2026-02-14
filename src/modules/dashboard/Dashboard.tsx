@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { db, type Habit, type Routine, type WorkoutSession } from '../../db/db';
 import { CheckCircle2, Circle, Dumbbell, ChevronRight, Wallet, Droplets, Timer } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { USER_CONFIG, getGreeting, TIME_LABELS, MODULE_NAMES } from '../../constants/ui';
+import { getUserName, getGreeting, TIME_LABELS, MODULE_NAMES } from '../../constants/ui';
 
 interface DashboardProps {
     onNavigate: (module: string) => void;
@@ -97,7 +97,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                 animate={{ opacity: 1 }}
                 style={{ color: 'var(--text-dim)', fontSize: '14px', marginTop: '4px' }}
             >
-                {getGreeting()}, {USER_CONFIG.name} 👋
+                {getGreeting()}, {getUserName()} 👋
             </motion.p>
 
             {/* Habits Widget */}
