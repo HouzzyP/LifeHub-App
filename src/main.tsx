@@ -7,7 +7,7 @@ import { syncManager } from './db/syncManager'
 
 // Register the generated service worker in production
 registerSW({
-    onRegistered(swUrl, registration) {
+    onRegistered(swUrl: string, registration?: ServiceWorkerRegistration) {
         if (registration) {
             console.log('[PWA] Service Worker registered:', swUrl)
         }
