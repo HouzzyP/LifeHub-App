@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { db, type Habit, type Routine, type WorkoutSession } from '../../db/db';
-import { CheckCircle2, Circle, Dumbbell, ChevronRight, StickyNote, Wallet, Droplets, Timer } from 'lucide-react';
+import { CheckCircle2, Circle, Dumbbell, ChevronRight, Wallet, Droplets, Timer } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface DashboardProps {
