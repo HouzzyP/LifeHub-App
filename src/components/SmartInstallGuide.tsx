@@ -16,18 +16,18 @@ export function SmartInstallGuide() {
 
     if (!isMobile || isAlreadyInstalled) return null
 
-    const instructions = device.platform === 'ios' 
+    const instructions = device.platform === 'ios'
         ? [
             'Abre Safari',
             'Dirígete a esta página',
             'Toca el botón Compartir (↗)',
             'Selecciona "Agregar a pantalla de inicio"'
-          ]
+        ]
         : [
             'Toca los 3 puntos (⋮) arriba a la derecha',
             'Selecciona "Agregar a la pantalla principal"',
             '¡Listo! LifeHub aparecerá en tu pantalla de inicio'
-          ]
+        ]
 
     return (
         <div className="fixed bottom-20 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:max-w-md z-40 animate-in fade-in slide-in-from-bottom-2">
