@@ -59,9 +59,6 @@ function App() {
             {/* Offline Indicator */}
             <OfflineIndicator />
 
-            {/* Smart Install Guide */}
-            <SmartInstallGuide />
-
             {/* Header */}
             <header style={{ padding: '40px 24px 20px' }}>
                 <motion.h1
@@ -232,6 +229,9 @@ function App() {
                     </>
                 ) : null}
             </AnimatePresence>
+
+            {/* Smart Install Guide - Positioned above navbar */}
+            <SmartInstallGuide />
 
             {/* Navigation Bar */}
             <nav className="navbar">

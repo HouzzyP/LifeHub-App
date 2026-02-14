@@ -20,7 +20,15 @@ export function SmartInstallGuide() {
     if (!showInstallButton) return null
 
     return (
-        <div className="fixed bottom-20 right-4 z-40 animate-in fade-in slide-in-from-bottom-2">
+        <div
+            className="animate-in fade-in slide-in-from-bottom-2"
+            style={{
+                position: 'fixed',
+                bottom: '5rem',
+                right: '1rem',
+                zIndex: 150
+            }}
+        >
             <button
                 onClick={tryInstall}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium shadow-lg shadow-accent/20 hover:shadow-accent/30 transition-all duration-200 hover:scale-105 active:scale-95"
