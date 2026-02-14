@@ -53,7 +53,6 @@ const getGreeting = (): string => {
 };
 
 const QUICK_ACCESS_MODULES = [
-    { id: 'notes', name: 'Notes', icon: <StickyNote size={20} />, color: '#fbbf24' },
     { id: 'finance', name: 'Finance', icon: <Wallet size={20} />, color: '#34d399' },
     { id: 'water', name: 'Water', icon: <Droplets size={20} />, color: '#60a5fa' },
     { id: 'focus', name: 'Focus', icon: <Timer size={20} />, color: '#f87171' },
