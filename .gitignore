@@ -25,3 +25,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Agent/automation
+.agent/
+.agents/
+
+# Playwright outputs
+test-results/
+test-output.txt
