@@ -20,14 +20,20 @@ export function SmartInstallGuide() {
     if (!showInstallButton) return null
 
     return (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-40 w-[min(92vw,420px)] animate-in fade-in slide-in-from-bottom-2">
+        <div className="fixed bottom-20 right-4 z-40 animate-in fade-in slide-in-from-bottom-2">
             <button
                 onClick={tryInstall}
-                className="premium-button w-full flex items-center justify-center gap-2 rounded-2xl"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium shadow-lg shadow-accent/20 hover:shadow-accent/30 transition-all duration-200 hover:scale-105 active:scale-95"
+                style={{
+                    background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(129, 140, 248, 0.15) 100%)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(56, 189, 248, 0.3)',
+                    color: 'var(--accent)'
+                }}
                 aria-label="Instalar LifeHub"
             >
                 <Download className="w-4 h-4" />
-                Instalar LifeHub
+                <span>Instalar</span>
             </button>
         </div>
     )
