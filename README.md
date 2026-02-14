@@ -1,73 +1,67 @@
-# React + TypeScript + Vite
+# LifeHub
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+LifeHub is a mobile-first personal hub that bundles multiple mini-apps into a single experience. It is built as a PWA so it can run offline and be installed on mobile.
 
-Currently, two official plugins are available:
+## Modules
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Ready
+- Dashboard (overview of habits and gym progress)
+- Habits (daily tracking, streaks, weekly view)
+- Gym Tracker (Advanced)
+  - Exercise library with search and filters
+  - Custom exercises
+  - Routines with optional day label, reorderable exercises, and per-exercise targets (sets/reps/weight)
+  - Routine detail with View/Edit modes
+  - Session logging with multi-set tracking (weight, reps, completed)
+  - History with total volume summary and session details
+- Notes (search, categories, pin/favorite, markdown preview)
 
-## React Compiler
+### Planned
+- Finance
+- Water tracking
+- Focus sessions
+- Settings
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Data Storage
+- Local-first (IndexedDB via Dexie)
+- No backend required
+- Data stays on the device
 
-## Expanding the ESLint configuration
+## Tech Stack
+- React + TypeScript + Vite
+- Dexie (IndexedDB)
+- Framer Motion
+- Lucide icons
+- Vite PWA
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## PWA
+The app is configured as a PWA and can be installed on mobile from supported browsers.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Scripts
+- `npm run dev` - Start dev server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Lint code
+- `npm run test:e2e` - Run Playwright E2E tests
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Testing
+LifeHub uses Playwright for E2E testing with full integration testing of user flows.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Test Suites
+- **Smoke Tests** (`e2e/tests/smoke.spec.ts`): Basic navigation and module loading
+- **Gym Routine CRUD** (`e2e/tests/gym-routine.spec.ts`): Full routine creation, editing, and View/Edit mode switching
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Running Tests
+```bash
+# Run all tests
+npm run test:e2e
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+# Run with browser visible
+npx playwright test --headed
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Run specific test file
+npx playwright test gym-routine.spec.ts
+
+# Install browser dependencies (first time only)
+npx playwright install
 ```

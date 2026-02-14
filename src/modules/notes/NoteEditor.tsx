@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { db, type Note } from '../../db/db';
+import { syncManager } from '../../db/syncManager';
 import { ArrowLeft, Pin, Star, Trash2, Eye, Edit3 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -32,18 +33,29 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onBack }) => {
     const [isFavorite, setIsFavorite] = useState(false);
     const [isPreview, setIsPreview] = useState(false);
     const [existingNote, setExistingNote] = useState<Note | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
     const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const stateRef = useRef({ title: '', content: '', category: 'Personal', isPinned: false, isFavorite: false, existingNote: null as Note | null });
+
+    // Keep stateRef in sync
+    useEffect(() => {
+        stateRef.current = { title, content, category, isPinned, isFavorite, existingNote };
+    }, [title, content, category, isPinned, isFavorite, existingNote]);
 
     const loadNote = useCallback(async () => {
         if (!noteId) return;
-        const note = await db.notes.get(noteId);
-        if (note) {
-            setTitle(note.title);
-            setContent(note.content);
-            setCategory(note.category);
-            setIsPinned(note.isPinned);
-            setIsFavorite(note.isFavorite);
-            setExistingNote(note);
+        try {
+            const note = await db.notes.get(noteId);
+            if (note) {
+                setTitle(note.title);
+                setContent(note.content);
+                setCategory(note.category);
+                setIsPinned(note.isPinned);
+                setIsFavorite(note.isFavorite);
+                setExistingNote(note);
+            }
+        } catch (error) {
+            console.error('[Notes] Failed to load note:', error);
         }
     }, [noteId]);
 
@@ -51,29 +63,42 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onBack }) => {
         loadNote();
     }, [loadNote]);
 
+    // Save function - uses stateRef to avoid circular deps
     const saveNote = useCallback(async () => {
-        if (!title.trim()) return;
+        const { title: currentTitle, content: currentContent, category: currentCategory, isPinned: currentIsPinned, isFavorite: currentIsFavorite, existingNote: currentExistingNote } = stateRef.current;
 
-        const noteData: Omit<Note, 'id'> = {
-            title: title.trim(),
-            content,
-            category,
-            isPinned,
-            isFavorite,
-            createdAt: existingNote ? existingNote.createdAt : Date.now(),
-            updatedAt: Date.now()
-        };
+        if (!currentTitle.trim()) return;
 
-        if (existingNote?.id) {
-            await db.notes.update(existingNote.id, noteData);
-        } else {
-            const id = await db.notes.add(noteData as Note);
-            const saved = await db.notes.get(id);
-            if (saved) setExistingNote(saved);
+        try {
+            setIsSaving(true);
+            const noteData: Omit<Note, 'id'> = {
+                title: currentTitle.trim(),
+                content: currentContent,
+                category: currentCategory,
+                isPinned: currentIsPinned,
+                isFavorite: currentIsFavorite,
+                createdAt: currentExistingNote ? currentExistingNote.createdAt : Date.now(),
+                updatedAt: Date.now()
+            };
+
+            if (currentExistingNote?.id) {
+                await db.notes.update(currentExistingNote.id, noteData);
+                await syncManager.queueSync('note', 'update', { id: currentExistingNote.id, ...noteData });
+            } else {
+                const id = await db.notes.add(noteData as Note);
+                const saved = await db.notes.get(id);
+                if (saved) setExistingNote(saved);
+                await syncManager.queueSync('note', 'create', { id, ...noteData });
+            }
+            console.log('[Notes] Auto-saved successfully');
+        } catch (error) {
+            console.error('[Notes] Failed to save note:', error);
+        } finally {
+            setIsSaving(false);
         }
-    }, [title, content, category, isPinned, isFavorite, existingNote]);
+    }, []);
 
-    // Debounced auto-save
+    // Debounced auto-save - no dependencies on saveNote
     const triggerAutoSave = useCallback(() => {
         if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
         saveTimeoutRef.current = setTimeout(() => {
@@ -92,8 +117,14 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onBack }) => {
     }, [title, content, category, isPinned, isFavorite, triggerAutoSave]);
 
     const deleteNote = useCallback(async () => {
-        if (existingNote?.id) {
-            await db.notes.delete(existingNote.id);
+        try {
+            if (existingNote?.id) {
+                await db.notes.delete(existingNote.id);
+                await syncManager.queueSync('note', 'delete', { id: existingNote.id });
+                console.log('[Notes] Note deleted successfully');
+            }
+        } catch (error) {
+            console.error('[Notes] Failed to delete note:', error);
         }
         onBack();
     }, [existingNote, onBack]);
@@ -115,13 +146,17 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onBack }) => {
             {/* Top bar */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
                 <motion.button
-                    onClick={() => { saveNote(); onBack(); }}
+                    onClick={async () => { await saveNote(); onBack(); }}
                     whileTap={{ scale: 0.9 }}
+                    aria-label="Save and return to notes"
+                    title="Save note and return to notes list"
                     style={{
                         background: 'none', border: 'none',
                         color: 'var(--accent)', cursor: 'pointer',
                         display: 'flex', alignItems: 'center', gap: '6px',
-                        fontSize: '14px', padding: 0
+                        fontSize: '14px', padding: 0,
+                        minHeight: '44px',
+                        minWidth: '44px'
                     }}
                 >
                     <ArrowLeft size={18} />
@@ -132,12 +167,17 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onBack }) => {
                     <motion.button
                         onClick={togglePreview}
                         whileTap={{ scale: 0.9 }}
+                        aria-label={isPreview ? 'Edit note' : 'Preview note'}
+                        aria-pressed={isPreview}
+                        title={isPreview ? 'Switch to edit mode' : 'Preview note formatting'}
                         style={{
                             background: isPreview ? 'var(--accent)' : 'var(--bg-glass)',
                             border: '1px solid var(--glass-border)',
                             borderRadius: '10px', padding: '8px',
                             color: isPreview ? 'var(--bg-primary)' : 'var(--text-dim)',
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+                            minHeight: '44px',
+                            minWidth: '44px'
                         }}
                     >
                         {isPreview ? <Edit3 size={16} /> : <Eye size={16} />}
@@ -145,12 +185,17 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onBack }) => {
                     <motion.button
                         onClick={togglePin}
                         whileTap={{ scale: 0.9 }}
+                        aria-label={isPinned ? 'Unpin note' : 'Pin note'}
+                        aria-pressed={isPinned}
+                        title={isPinned ? 'Remove from pinned' : 'Pin to top of list'}
                         style={{
                             background: isPinned ? 'var(--accent)' : 'var(--bg-glass)',
                             border: '1px solid var(--glass-border)',
                             borderRadius: '10px', padding: '8px',
                             color: isPinned ? 'var(--bg-primary)' : 'var(--text-dim)',
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+                            minHeight: '44px',
+                            minWidth: '44px'
                         }}
                     >
                         <Pin size={16} />
@@ -158,12 +203,17 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onBack }) => {
                     <motion.button
                         onClick={toggleFavorite}
                         whileTap={{ scale: 0.9 }}
+                        aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                        aria-pressed={isFavorite}
+                        title={isFavorite ? 'Remove star' : 'Mark as favorite'}
                         style={{
                             background: isFavorite ? '#fbbf24' : 'var(--bg-glass)',
                             border: '1px solid var(--glass-border)',
                             borderRadius: '10px', padding: '8px',
                             color: isFavorite ? 'var(--bg-primary)' : 'var(--text-dim)',
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+                            minHeight: '44px',
+                            minWidth: '44px'
                         }}
                     >
                         <Star size={16} />
@@ -172,11 +222,15 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onBack }) => {
                         <motion.button
                             onClick={deleteNote}
                             whileTap={{ scale: 0.9 }}
+                            aria-label="Delete note"
+                            title="Delete this note permanently"
                             style={{
                                 background: 'var(--bg-glass)',
                                 border: '1px solid var(--glass-border)',
                                 borderRadius: '10px', padding: '8px',
-                                color: '#ef4444', cursor: 'pointer'
+                                color: '#ef4444', cursor: 'pointer',
+                                minHeight: '44px',
+                                minWidth: '44px'
                             }}
                         >
                             <Trash2 size={16} />
@@ -214,6 +268,9 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onBack }) => {
                 value={title}
                 onChange={e => setTitle(e.target.value)}
                 placeholder="Note title..."
+                aria-label="Note title"
+                aria-required="true"
+                required
                 style={{
                     width: '100%',
                     background: 'transparent',
@@ -223,7 +280,8 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onBack }) => {
                     color: 'var(--text-main)',
                     outline: 'none',
                     marginBottom: '16px',
-                    fontFamily: 'Outfit, Inter, sans-serif'
+                    fontFamily: 'Outfit, Inter, sans-serif',
+                    minHeight: '44px'
                 }}
             />
 
@@ -247,6 +305,8 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onBack }) => {
                     value={content}
                     onChange={e => setContent(e.target.value)}
                     placeholder="Start writing... (supports **bold**, *italic*, # headers, - lists, `code`)"
+                    aria-label="Note content"
+                    aria-describedby="content-help"
                     style={{
                         width: '100%',
                         minHeight: '300px',
@@ -265,8 +325,8 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onBack }) => {
             )}
 
             {/* Auto-save indicator */}
-            <p style={{ textAlign: 'center', color: 'var(--text-dim)', fontSize: '12px', marginTop: '16px' }}>
-                Auto-saves as you type
+            <p style={{ textAlign: 'center', color: isSaving ? 'var(--accent)' : 'var(--text-dim)', fontSize: '12px', marginTop: '16px', fontWeight: isSaving ? 600 : 400 }} role="status" aria-live="polite" aria-atomic="true">
+                {isSaving ? '💾 Saving...' : '✓ Auto-saved'}
             </p>
         </div>
     );

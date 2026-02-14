@@ -18,6 +18,8 @@ import { Dashboard } from './modules/dashboard/Dashboard';
 import { HabitDashboard } from './modules/habits/HabitDashboard';
 import { GymTracker } from './modules/gym/GymTracker';
 import { NotesDashboard } from './modules/notes/NotesDashboard';
+import { OfflineIndicator } from './components/OfflineIndicator';
+import { SmartInstallGuide } from './components/SmartInstallGuide';
 
 // Types for our mini-apps
 type AppModule = 'dashboard' | 'gym' | 'habits' | 'notes' | 'finance' | 'water' | 'focus';
@@ -54,6 +56,12 @@ function App() {
 
     return (
         <div className="app-container">
+            {/* Offline Indicator */}
+            <OfflineIndicator />
+
+            {/* Smart Install Guide */}
+            <SmartInstallGuide />
+
             {/* Header */}
             <header style={{ padding: '40px 24px 20px' }}>
                 <motion.h1

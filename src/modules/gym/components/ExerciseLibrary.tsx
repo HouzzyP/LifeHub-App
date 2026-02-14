@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db, type Exercise } from '../../../db/db';
 import { seedExercises } from '../seedExercises';
-import { Search, Plus, Filter } from 'lucide-react';
+import { Search, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const CATEGORIES = ['All', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core'];

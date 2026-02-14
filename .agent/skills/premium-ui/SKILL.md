@@ -17,15 +17,18 @@ description: "MANDATORY — You MUST read this file BEFORE writing or modifying 
 ## Design Tokens (CSS)
 
 - **Colors**:
-  - `--bg-glass`: rgba(255, 255, 255, 0.1)
-  - `--bg-primary`: #0f172a
+  - `--bg-primary`: #020617
+  - `--bg-secondary`: #0f172a
+  - `--bg-glass`: rgba(15, 23, 42, 0.6)
+  - `--bg-glass-heavy`: rgba(15, 23, 42, 0.85)
   - `--accent`: #38bdf8
-  - `--text-main`: #f8fafc
+  - `--accent-secondary`: #818cf8
+  - `--text-main`: #f1f5f9
   - `--text-dim`: #94a3b8
   - `--glass-border`: rgba(255, 255, 255, 0.08)
 - **Effects**:
-  - `backdrop-filter: blur(10px)`
-  - `box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37)`
+  - `backdrop-filter: blur(20px)`
+  - `box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3)`
 - **Animations**:
   - Use `framer-motion` for spring transitions and scale-ups on hover/tap.
 

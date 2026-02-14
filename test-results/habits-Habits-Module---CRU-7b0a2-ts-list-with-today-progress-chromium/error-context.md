@@ -1,0 +1,50 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - heading "LifeHub" [level=1] [ref=e5]
+    - paragraph [ref=e6]: Welcome back, Juanpi
+  - main [ref=e7]:
+    - generic [ref=e9]:
+      - generic [ref=e10]:
+        - generic [ref=e11]:
+          - heading "Habits" [level=2] [ref=e12]
+          - paragraph [ref=e13]: No habits yet
+        - button [ref=e14] [cursor=pointer]:
+          - img [ref=e15]
+      - dialog "New Habit" [ref=e18]:
+        - heading "New Habit" [level=3] [ref=e19]
+        - generic [ref=e20]:
+          - generic [ref=e21]: Icon
+          - group "Select habit icon" [ref=e22]:
+            - button "Select ✨ icon" [pressed] [ref=e23] [cursor=pointer]: ✨
+            - button "Select 💧 icon" [ref=e24] [cursor=pointer]: 💧
+            - button "Select 🥗 icon" [ref=e25] [cursor=pointer]: 🥗
+            - button "Select 📖 icon" [ref=e26] [cursor=pointer]: 📖
+            - button "Select 💪 icon" [ref=e27] [cursor=pointer]: 💪
+            - button "Select 🧘 icon" [ref=e28] [cursor=pointer]: 🧘
+            - button "Select 🏃 icon" [ref=e29] [cursor=pointer]: 🏃
+            - button "Select 🎯 icon" [ref=e30] [cursor=pointer]: 🎯
+            - button "Select 💤 icon" [ref=e31] [cursor=pointer]: 💤
+            - button "Select 🧠 icon" [ref=e32] [cursor=pointer]: 🧠
+        - generic [ref=e33]:
+          - generic [ref=e34]: Habit Name
+          - textbox "Habit name" [active] [ref=e35]:
+            - /placeholder: e.g. Read 10 pages
+            - text: E2E Exercise Test
+        - button "Create new habit" [ref=e36] [cursor=pointer]: Create Habit
+  - navigation [ref=e37]:
+    - generic [ref=e38] [cursor=pointer]:
+      - img [ref=e39]
+      - generic [ref=e44]: Hub
+    - generic [ref=e45] [cursor=pointer]:
+      - img [ref=e46]
+      - generic [ref=e49]: Habits
+    - generic [ref=e51] [cursor=pointer]:
+      - img [ref=e52]
+      - generic [ref=e58]: Gym
+    - generic [ref=e59] [cursor=pointer]:
+      - img [ref=e60]
+      - generic [ref=e64]: More
+```
