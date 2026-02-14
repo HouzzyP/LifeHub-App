@@ -8,7 +8,7 @@ import { usePWAInstall } from '../hooks/usePWAInstall'
  */
 export function SmartInstallGuide() {
     const device = useDeviceDetection()
-    const { canInstall, install, isInstalled } = usePWAInstall()
+    const { tryInstall, isInstalled } = usePWAInstall()
 
     // Check if it's a mobile device and not already installed as app
     const isMobile = device.platform === 'android' || device.platform === 'ios'
@@ -16,13 +16,13 @@ export function SmartInstallGuide() {
 
     if (!isMobile || isAlreadyInstalled) return null
 
-    const showInstallButton = device.platform === 'android' && canInstall
+    const showInstallButton = device.platform === 'android'
     if (!showInstallButton) return null
 
     return (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-40 w-[min(92vw,420px)] animate-in fade-in slide-in-from-bottom-2">
             <button
-                onClick={install}
+                onClick={tryInstall}
                 className="premium-button w-full flex items-center justify-center gap-2 rounded-2xl"
                 aria-label="Instalar LifeHub"
             >
