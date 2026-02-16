@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2026-02-16] (Phase 6: Notes Localization + Context Snapshot)
+### Added
+- **Notes localization (EN/ES)** across editor, filters, empty states, and time-ago labels.
+- **Context snapshot tooling**:
+  - `scripts/context-snapshot.mjs` generates a structured project snapshot.
+  - `context/context.json` stores the latest snapshot output.
+  - `npm run context:snapshot` script for easy refresh.
+- **Notes E2E Page Object**: `e2e/pages/notes.page.ts` for resilient Playwright navigation.
+
+### Changed
+- **Notes UI**: filters, titles, and category labels now use centralized strings.
+- **Notes editor**: aria labels, placeholders, autosave copy localized.
+- **Navigation bar**: `NavItem` converted to button for better accessibility and testability.
+- **Notes tests**: navigation now uses "More" menu flow.
+
 ## [2026-02-13] (Phase 5: PWA - Minimal Install Banner - OPTIMIZED ✅)
 ### Added
 - **Minimal Install Banner** (Clean & Non-Intrusive):
