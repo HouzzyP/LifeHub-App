@@ -10,7 +10,8 @@
         "preview": "vite preview",
         "test:e2e": "playwright test",
         "generate:icons": "node generate-icons.mjs",
-        "context:snapshot": "node scripts/context-snapshot.mjs"
+        "context:snapshot": "node scripts/context-snapshot.mjs",
+        "hooks:enable": "git config core.hooksPath .githooks"
     },
     "dependencies": {
         "dexie": "^4.3.0",

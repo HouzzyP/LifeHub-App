@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 - **Decision memory fields** in context snapshot: `decisions`, `assumptions`, `pending`, `promptHints`.
 - **Snapshot preservation**: context snapshot now keeps those fields between runs.
+- **Mandatory snapshot hook**: `pre-commit` runs `npm run context:snapshot` and stages `context/context.json`.
 
 ## [2026-02-16] (Phase 6: Notes Localization + Context Snapshot)
 ### Added

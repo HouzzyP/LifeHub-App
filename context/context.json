@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-02-16T20:57:19.781Z",
+  "updatedAt": "2026-02-16T21:02:42.854Z",
   "project": {
     "name": "tmp-project",
     "version": "0.0.0"
@@ -25,12 +25,13 @@
     "dashboard": "src/modules/dashboard"
   },
   "git": {
-    "status": "## master...origin/master\n M CHANGELOG.md\n M context/context.json\n M scripts/context-snapshot.mjs",
+    "status": "## master...origin/master\nA  .githooks/pre-commit\nM  CHANGELOG.md\nM  context/context.json\nM  package.json",
     "changedFiles": [
       "master...origin/master",
+      ".githooks/pre-commit",
       "CHANGELOG.md",
       "context/context.json",
-      "scripts/context-snapshot.mjs"
+      "package.json"
     ]
   },
   "decisions": [],

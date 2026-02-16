@@ -1,0 +1,6 @@
+#!/bin/sh
+# Ensure context snapshot is updated before each commit.
+
+npm run -s context:snapshot
+
+git add context/context.json
