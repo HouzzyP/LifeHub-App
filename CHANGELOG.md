@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2026-02-16] (Phase 6: Context Snapshot Decision Memory)
+### Added
+- **Decision memory fields** in context snapshot: `decisions`, `assumptions`, `pending`, `promptHints`.
+- **Snapshot preservation**: context snapshot now keeps those fields between runs.
+
 ## [2026-02-16] (Phase 6: Notes Localization + Context Snapshot)
 ### Added
 - **Notes localization (EN/ES)** across editor, filters, empty states, and time-ago labels.

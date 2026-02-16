@@ -65,6 +65,13 @@ const getPackageInfo = () => {
 
 const appContent = readFileSafe(appPath);
 const uiContent = readFileSafe(uiPath);
+const existingContextRaw = readFileSafe(outputPath);
+let existingContext = {};
+try {
+    existingContext = existingContextRaw ? JSON.parse(existingContextRaw) : {};
+} catch {
+    existingContext = {};
+}
 
 const contextSnapshot = {
     updatedAt: new Date().toISOString(),
@@ -82,7 +89,11 @@ const contextSnapshot = {
         status: getGitStatus(),
         changedFiles: getChangedFiles(),
     },
-    notes: [],
+    decisions: Array.isArray(existingContext.decisions) ? existingContext.decisions : [],
+    assumptions: Array.isArray(existingContext.assumptions) ? existingContext.assumptions : [],
+    pending: Array.isArray(existingContext.pending) ? existingContext.pending : [],
+    promptHints: Array.isArray(existingContext.promptHints) ? existingContext.promptHints : [],
+    notes: Array.isArray(existingContext.notes) ? existingContext.notes : [],
 };
 
 fs.mkdirSync(path.dirname(outputPath), { recursive: true });
