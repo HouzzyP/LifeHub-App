@@ -1,13 +1,16 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { db, type Habit } from '../../db/db';
 import { Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { HabitCard } from './components/HabitCard';
 import { HabitProgressBar } from './components/HabitProgressBar';
 import { AddHabitModal } from './components/AddHabitModal';
-import { PROGRESS_MESSAGES, UI_MESSAGES } from '../../constants/ui';
+import { getStrings } from '../../constants/ui';
+import { useLocale } from '../../hooks/useLocale';
 
 export const HabitDashboard: React.FC = () => {
+    const locale = useLocale();
+    const strings = useMemo(() => getStrings(locale), [locale]);
     const [habits, setHabits] = useState<Habit[]>([]);
     const [showAddModal, setShowAddModal] = useState(false);
     const [newHabitName, setNewHabitName] = useState('');
@@ -79,12 +82,12 @@ export const HabitDashboard: React.FC = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <div>
                     <h2 style={{ fontSize: '28px', fontWeight: 800, marginBottom: '4px' }}>
-                        <span style={{ color: 'var(--accent)' }}>Habit</span>s
+                        {strings.moduleNames.habits}
                     </h2>
                     <p style={{ color: 'var(--text-dim)', fontSize: '14px' }}>
                         {totalHabits > 0
-                            ? PROGRESS_MESSAGES.completedToday(completedToday, totalHabits)
-                            : UI_MESSAGES.noHabits
+                            ? strings.progressMessages.completedToday(completedToday, totalHabits)
+                            : strings.uiMessages.noHabits
                         }
                     </p>
                 </div>

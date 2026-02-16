@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
     LayoutDashboard,
     Dumbbell,
@@ -13,7 +13,8 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './styles/main.css';
-import { getUserName, GREETINGS, NAV_LABELS, UI_MESSAGES } from './constants/ui';
+import { getStrings, getUserName, type Strings } from './constants/ui';
+import { useLocale } from './hooks/useLocale';
 
 import { Dashboard } from './modules/dashboard/Dashboard';
 import { HabitDashboard } from './modules/habits/HabitDashboard';
@@ -26,18 +27,21 @@ import { WelcomeModal } from './components/WelcomeModal';
 // Types for our mini-apps
 type AppModule = 'dashboard' | 'gym' | 'habits' | 'notes' | 'finance' | 'water' | 'focus';
 
-// Hoisted outside component — rendering-hoist-jsx
-const MORE_MODULES: { id: AppModule; name: string; icon: React.ReactNode; color: string; ready: boolean }[] = [
-    { id: 'notes', name: 'Notes', icon: <StickyNote size={22} />, color: '#fbbf24', ready: true },
-    { id: 'finance', name: 'Finance', icon: <Wallet size={22} />, color: '#34d399', ready: false },
-    { id: 'water', name: 'Water', icon: <Droplets size={22} />, color: '#60a5fa', ready: false },
-    { id: 'focus', name: 'Focus', icon: <Timer size={22} />, color: '#f87171', ready: false },
-    { id: 'notes' as AppModule, name: 'Settings', icon: <SettingsIcon size={22} />, color: '#94a3b8', ready: false },
+const getMoreModules = (strings: Strings): { id: AppModule; name: string; icon: React.ReactNode; color: string; ready: boolean }[] => [
+    { id: 'notes', name: strings.moduleNames.notes, icon: <StickyNote size={22} />, color: '#fbbf24', ready: true },
+    { id: 'finance', name: strings.moduleNames.finance, icon: <Wallet size={22} />, color: '#34d399', ready: false },
+    { id: 'water', name: strings.moduleNames.water, icon: <Droplets size={22} />, color: '#60a5fa', ready: false },
+    { id: 'focus', name: strings.moduleNames.focus, icon: <Timer size={22} />, color: '#f87171', ready: false },
+    { id: 'notes' as AppModule, name: strings.moduleNames.settings, icon: <SettingsIcon size={22} />, color: '#94a3b8', ready: false },
 ];
 
 function App() {
     const [activeApp, setActiveApp] = useState<AppModule>('dashboard');
     const [showMore, setShowMore] = useState(false);
+    const [userName, setUserNameState] = useState(getUserName());
+    const locale = useLocale();
+    const strings = useMemo(() => getStrings(locale), [locale]);
+    const moreModules = useMemo(() => getMoreModules(strings), [strings]);
 
     const handleNavigate = useCallback((module: string) => {
         setActiveApp(module as AppModule);
@@ -54,6 +58,20 @@ function App() {
 
     const closeMore = useCallback(() => {
         setShowMore(false);
+    }, []);
+
+    useEffect(() => {
+        const handleUserNameChanged = (event: Event) => {
+            const customEvent = event as CustomEvent<string>;
+            if (customEvent.detail) {
+                setUserNameState(customEvent.detail);
+            } else {
+                setUserNameState(getUserName());
+            }
+        };
+
+        window.addEventListener('user-name-changed', handleUserNameChanged);
+        return () => window.removeEventListener('user-name-changed', handleUserNameChanged);
     }, []);
 
     return (
@@ -73,7 +91,7 @@ function App() {
                 >
                     Life<span style={{ color: 'var(--accent)' }}>Hub</span>
                 </motion.h1>
-                <p style={{ color: 'var(--text-dim)', marginTop: '4px' }}>{GREETINGS.welcome}, {getUserName()}</p>
+                <p style={{ color: 'var(--text-dim)', marginTop: '4px' }}>{strings.greetings.welcome}, {userName}</p>
             </header>
 
             {/* Main Content Area */}
@@ -108,12 +126,12 @@ function App() {
                                             onClick={() => setActiveApp('dashboard')}
                                             style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', padding: 0 }}
                                         >
-                                            {NAV_LABELS.back}
+                                            {strings.navLabels.back}
                                         </button>
-                                        <h2 style={{ fontSize: '24px', textTransform: 'capitalize' }}>{activeApp}</h2>
+                                        <h2 style={{ fontSize: '24px', textTransform: 'capitalize' }}>{strings.moduleNames[activeApp] ?? activeApp}</h2>
                                     </div>
                                     <div className="glass-container" style={{ padding: '40px', textAlign: 'center' }}>
-                                        <p style={{ color: 'var(--text-dim)' }}>{UI_MESSAGES.workInProgress(activeApp)}</p>
+                                        <p style={{ color: 'var(--text-dim)' }}>{strings.uiMessages.workInProgress(strings.moduleNames[activeApp] ?? activeApp)}</p>
                                     </div>
                                 </div>
                             )}
@@ -162,7 +180,7 @@ function App() {
                         >
                             {/* Sheet header */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                                <h3 style={{ fontSize: '18px', fontWeight: 700 }}>{UI_MESSAGES.moreModules}</h3>
+                                <h3 style={{ fontSize: '18px', fontWeight: 700 }}>{strings.uiMessages.moreModules}</h3>
                                 <motion.button
                                     onClick={closeMore}
                                     whileTap={{ scale: 0.9 }}
@@ -181,7 +199,7 @@ function App() {
 
                             {/* Module list */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                {MORE_MODULES.map(mod => (
+                                {moreModules.map(mod => (
                                     <motion.button
                                         key={mod.name}
                                         onClick={() => mod.ready ? handleMoreSelect(mod.id) : null}
@@ -224,7 +242,7 @@ function App() {
                                                 background: 'rgba(255,255,255,0.05)',
                                                 color: 'var(--text-dim)'
                                             }}>
-                                                {UI_MESSAGES.comingSoon}
+                                                {strings.uiMessages.comingSoon}
                                             </span>
                                         )}
                                     </motion.button>
@@ -240,10 +258,10 @@ function App() {
 
             {/* Navigation Bar */}
             <nav className="navbar">
-                <NavItem active={activeApp === 'dashboard'} onClick={() => setActiveApp('dashboard')} icon={<LayoutDashboard size={24} />} label={NAV_LABELS.hub} />
-                <NavItem active={activeApp === 'habits'} onClick={() => setActiveApp('habits')} icon={<CheckCircle2 size={24} />} label={NAV_LABELS.habits} />
-                <NavItem active={activeApp === 'gym'} onClick={() => setActiveApp('gym')} icon={<Dumbbell size={24} />} label={NAV_LABELS.gym} />
-                <NavItem active={showMore} onClick={toggleMore} icon={<MoreHorizontal size={24} />} label={NAV_LABELS.more} />
+                <NavItem active={activeApp === 'dashboard'} onClick={() => setActiveApp('dashboard')} icon={<LayoutDashboard size={24} />} label={strings.navLabels.hub} />
+                <NavItem active={activeApp === 'habits'} onClick={() => setActiveApp('habits')} icon={<CheckCircle2 size={24} />} label={strings.navLabels.habits} />
+                <NavItem active={activeApp === 'gym'} onClick={() => setActiveApp('gym')} icon={<Dumbbell size={24} />} label={strings.navLabels.gym} />
+                <NavItem active={showMore} onClick={toggleMore} icon={<MoreHorizontal size={24} />} label={strings.navLabels.more} />
             </nav>
         </div>
     );
@@ -251,8 +269,10 @@ function App() {
 
 function NavItem({ active, onClick, icon, label }: { active: boolean, onClick: () => void, icon: React.ReactNode, label: string }) {
     return (
-        <motion.div
+        <motion.button
+            type="button"
             onClick={onClick}
+            aria-current={active ? 'page' : undefined}
             style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -260,7 +280,12 @@ function NavItem({ active, onClick, icon, label }: { active: boolean, onClick: (
                 gap: '4px',
                 color: active ? 'var(--accent)' : 'var(--text-dim)',
                 cursor: 'pointer',
-                position: 'relative'
+                position: 'relative',
+                background: 'none',
+                border: 'none',
+                minHeight: '44px',
+                minWidth: '44px',
+                padding: 0
             }}
             whileTap={{ scale: 0.9 }}
         >
@@ -280,7 +305,7 @@ function NavItem({ active, onClick, icon, label }: { active: boolean, onClick: (
                     }}
                 />
             ) : null}
-        </motion.div>
+        </motion.button>
     );
 }
 

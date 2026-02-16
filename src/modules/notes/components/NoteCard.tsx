@@ -1,25 +1,19 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pin, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { type Note } from '../../../db/db';
+import { useLocale } from '../../../hooks/useLocale';
+import { getStrings } from '../../../constants/ui';
 
-const CATEGORY_COLORS: Record<string, string> = {
-    Personal: '#a78bfa',
-    Work: '#38bdf8',
-    Ideas: '#fbbf24',
-    Health: '#34d399',
-    Finance: '#f87171'
-};
-
-const timeAgo = (timestamp: number): string => {
+const timeAgo = (timestamp: number, strings: ReturnType<typeof getStrings>): string => {
     const diff = Date.now() - timestamp;
     const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'Just now';
-    if (mins < 60) return `${mins}m ago`;
+    if (mins < 1) return strings.notesUi.timeAgo.justNow;
+    if (mins < 60) return strings.notesUi.timeAgo.minutes(mins);
     const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours}h ago`;
+    if (hours < 24) return strings.notesUi.timeAgo.hours(hours);
     const days = Math.floor(hours / 24);
-    if (days < 7) return `${days}d ago`;
+    if (days < 7) return strings.notesUi.timeAgo.days(days);
     return new Date(timestamp).toLocaleDateString();
 };
 
@@ -30,8 +24,11 @@ interface NoteCardProps {
 }
 
 export const NoteCard: React.FC<NoteCardProps> = ({ note, index, onEdit }) => {
+    const locale = useLocale();
+    const strings = useMemo(() => getStrings(locale), [locale]);
     const preview = note.content.slice(0, 80).replace(/[#*`\-]/g, '');
-    const catColor = CATEGORY_COLORS[note.category] || 'var(--text-dim)';
+    const categoryMeta = strings.notesUi.categoryDefaults[note.category] ?? { label: note.category, color: 'var(--text-dim)' };
+    const catColor = categoryMeta.color || 'var(--text-dim)';
 
     return (
         <motion.div
@@ -45,7 +42,7 @@ export const NoteCard: React.FC<NoteCardProps> = ({ note, index, onEdit }) => {
         >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <h3 style={{ fontSize: '16px', fontWeight: 600, flex: 1, marginRight: '10px', color: 'var(--text-main)' }}>
-                    {note.title || 'Untitled'}
+                    {note.title || strings.notesUi.untitled}
                 </h3>
                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexShrink: 0 }}>
                     {note.isFavorite ? <Star size={14} style={{ color: '#fbbf24' }} /> : null}
@@ -66,10 +63,10 @@ export const NoteCard: React.FC<NoteCardProps> = ({ note, index, onEdit }) => {
                     color: catColor,
                     fontWeight: 600
                 }}>
-                    {note.category}
+                    {categoryMeta.label || note.category}
                 </span>
                 <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>
-                    {timeAgo(note.updatedAt)}
+                    {timeAgo(note.updatedAt, strings)}
                 </span>
             </div>
         </motion.div>

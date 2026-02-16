@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { PROGRESS_MESSAGES } from '../../../constants/ui';
+import { getStrings } from '../../../constants/ui';
+import { useLocale } from '../../../hooks/useLocale';
 
 interface HabitProgressBarProps {
     completedToday: number;
@@ -8,6 +9,8 @@ interface HabitProgressBarProps {
 }
 
 export const HabitProgressBar: React.FC<HabitProgressBarProps> = ({ completedToday, totalHabits }) => {
+    const locale = useLocale();
+    const strings = useMemo(() => getStrings(locale), [locale]);
     const progress = totalHabits > 0 ? (completedToday / totalHabits) * 100 : 0;
 
     if (totalHabits === 0) return null;
@@ -15,7 +18,7 @@ export const HabitProgressBar: React.FC<HabitProgressBarProps> = ({ completedTod
     return (
         <div className="glass-container" style={{ padding: '16px 20px', marginBottom: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ fontSize: '13px', color: 'var(--text-dim)', fontWeight: 500 }}>{PROGRESS_MESSAGES.todayProgress}</span>
+                <span style={{ fontSize: '13px', color: 'var(--text-dim)', fontWeight: 500 }}>{strings.progressMessages.todayProgress}</span>
                 <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--accent)' }}>{Math.round(progress)}%</span>
             </div>
             <div style={{

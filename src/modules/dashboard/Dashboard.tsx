@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { db, type Habit, type Routine, type WorkoutSession } from '../../db/db';
 import { CheckCircle2, Circle, Dumbbell, ChevronRight, Wallet, Droplets, Timer } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { getUserName, getGreeting, TIME_LABELS, MODULE_NAMES } from '../../constants/ui';
+import { getGreeting, getStrings, getUserName } from '../../constants/ui';
+import { useLocale } from '../../hooks/useLocale';
 
 interface DashboardProps {
     onNavigate: (module: string) => void;
@@ -45,13 +46,9 @@ const ProgressRing: React.FC<{ progress: number; size?: number; strokeWidth?: nu
     );
 };
 
-const QUICK_ACCESS_MODULES = [
-    { id: 'finance', name: MODULE_NAMES.finance, icon: <Wallet size={20} />, color: '#34d399' },
-    { id: 'water', name: MODULE_NAMES.water, icon: <Droplets size={20} />, color: '#60a5fa' },
-    { id: 'focus', name: MODULE_NAMES.focus, icon: <Timer size={20} />, color: '#f87171' },
-];
-
 export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
+    const locale = useLocale();
+    const strings = useMemo(() => getStrings(locale), [locale]);
     const [habits, setHabits] = useState<Habit[]>([]);
     const [routines, setRoutines] = useState<Routine[]>([]);
     const [lastSession, setLastSession] = useState<WorkoutSession | undefined>();
@@ -76,6 +73,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
     const totalHabits = habits.length;
     const progress = totalHabits > 0 ? (completedToday / totalHabits) * 100 : 0;
 
+    const quickAccessModules = useMemo(() => [
+        { id: 'finance', name: strings.moduleNames.finance, icon: <Wallet size={20} />, color: '#34d399' },
+        { id: 'water', name: strings.moduleNames.water, icon: <Droplets size={20} />, color: '#60a5fa' },
+        { id: 'focus', name: strings.moduleNames.focus, icon: <Timer size={20} />, color: '#f87171' },
+    ], [strings]);
 
     const formatSessionDate = (timestamp: number): string => {
         const date = new Date(timestamp);
@@ -83,9 +85,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         const diffMs = now.getTime() - date.getTime();
         const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-        if (diffDays === 0) return TIME_LABELS.today;
-        if (diffDays === 1) return TIME_LABELS.yesterday;
-        if (diffDays < 7) return TIME_LABELS.daysAgo(diffDays);
+        if (diffDays === 0) return strings.timeLabels.today;
+        if (diffDays === 1) return strings.timeLabels.yesterday;
+        if (diffDays < 7) return strings.timeLabels.daysAgo(diffDays);
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     };
 
@@ -97,7 +99,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                 animate={{ opacity: 1 }}
                 style={{ color: 'var(--text-dim)', fontSize: '14px', marginTop: '4px' }}
             >
-                {getGreeting()}, {getUserName()} 👋
+                {getGreeting(locale)}, {getUserName()} 👋
             </motion.p>
 
             {/* Habits Widget */}
@@ -113,12 +115,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                     <div>
                         <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '4px' }}>
-                            Today's Habits
+                            {strings.dashboard.todayHabitsTitle}
                         </h3>
                         <p style={{ color: 'var(--text-dim)', fontSize: '13px' }}>
                             {totalHabits > 0
-                                ? `${completedToday}/${totalHabits} completed`
-                                : 'No habits yet — tap to create one!'
+                                ? strings.dashboard.completed(completedToday, totalHabits)
+                                : strings.dashboard.noHabitsToday
                             }
                         </p>
                     </div>
@@ -169,7 +171,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                         })}
                         {habits.length > 4 ? (
                             <p style={{ fontSize: '12px', color: 'var(--text-dim)', textAlign: 'center' }}>
-                                +{habits.length - 4} more habits
+                                {strings.dashboard.moreHabits(habits.length - 4)}
                             </p>
                         ) : null}
                     </div>
@@ -189,12 +191,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <div>
                         <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '4px' }}>
-                            Gym Tracker
+                            {strings.dashboard.gymTitle}
                         </h3>
                         <p style={{ color: 'var(--text-dim)', fontSize: '13px' }}>
                             {routines.length > 0
-                                ? `${routines.length} routine${routines.length > 1 ? 's' : ''} created`
-                                : 'No routines yet — tap to create one!'
+                                ? strings.dashboard.routinesCreated(routines.length)
+                                : strings.dashboard.noRoutines
                             }
                         </p>
                     </div>
@@ -224,7 +226,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                                     {lastSession.routineName}
                                 </p>
                                 <p style={{ fontSize: '12px', color: 'var(--text-dim)', marginTop: '2px' }}>
-                                    {formatSessionDate(lastSession.date)} · {lastSession.exercises.length} exercises
+                                    {formatSessionDate(lastSession.date)} · {lastSession.exercises.length} {strings.dashboard.exercisesLabel}
                                 </p>
                             </div>
                             <ChevronRight size={18} style={{ color: 'var(--text-dim)' }} />
@@ -239,7 +241,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                         textAlign: 'center'
                     }}>
                         <p style={{ fontSize: '13px', color: 'var(--text-dim)' }}>
-                            No workouts logged yet — start one!
+                            {strings.dashboard.noWorkouts}
                         </p>
                     </div>
                 )}
@@ -259,14 +261,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                     letterSpacing: '0.08em',
                     marginBottom: '12px'
                 }}>
-                    Coming Soon
+                    {strings.dashboard.comingSoonLabel}
                 </p>
                 <div style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(4, 1fr)',
                     gap: '12px'
                 }}>
-                    {QUICK_ACCESS_MODULES.map(mod => (
+                    {quickAccessModules.map(mod => (
                         <motion.div
                             key={mod.id}
                             className="glass-container"

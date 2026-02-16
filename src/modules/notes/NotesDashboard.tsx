@@ -4,11 +4,16 @@ import { NoteEditor } from './NoteEditor';
 import { NotesHeader } from './components/NotesHeader';
 import { NotesPinnedSection } from './components/NotesPinnedSection';
 import { NotesGrid } from './components/NotesGrid';
+import { getLocale, getStrings } from '../../constants/ui';
+import { useLocale } from '../../hooks/useLocale';
 
 export const NotesDashboard: React.FC = () => {
+    const locale = useLocale();
+    const strings = useMemo(() => getStrings(locale), [locale]);
+    const allCategoryValue = strings.notesUi.allCategoryValue;
     const [notes, setNotes] = useState<Note[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
-    const [activeCategory, setActiveCategory] = useState('All');
+    const [activeCategory, setActiveCategory] = useState(() => getStrings(getLocale()).notesUi.allCategoryValue);
     const [editingId, setEditingId] = useState<number | null>(null);
     const [isCreating, setIsCreating] = useState(false);
 
@@ -42,7 +47,7 @@ export const NotesDashboard: React.FC = () => {
     // Filter notes — useMemo for derived state
     const filteredNotes = useMemo(() => {
         return notes.filter(note => {
-            const matchesCategory = activeCategory === 'All' ? true : note.category === activeCategory;
+            const matchesCategory = activeCategory === allCategoryValue ? true : note.category === activeCategory;
             const matchesSearch = searchQuery.trim() === ''
                 ? true
                 : note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||

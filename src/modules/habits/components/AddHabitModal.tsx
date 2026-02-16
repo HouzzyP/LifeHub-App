@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getStrings } from '../../../constants/ui';
+import { useLocale } from '../../../hooks/useLocale';
 
 const ICON_OPTIONS = ['✨', '💧', '🥗', '📖', '💪', '🧘', '🏃', '🎯', '💤', '🧠'];
 
@@ -22,6 +24,8 @@ export const AddHabitModal: React.FC<AddHabitModalProps> = ({
     onClose,
     onCreate
 }) => {
+    const locale = useLocale();
+    const strings = useMemo(() => getStrings(locale), [locale]);
     // Handle Escape key to close modal
     React.useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {
@@ -52,19 +56,19 @@ export const AddHabitModal: React.FC<AddHabitModalProps> = ({
                         className="glass-container"
                         style={{ position: 'relative', width: '100%', maxWidth: '500px', borderBottomLeftRadius: 0, borderBottomRightRadius: 0, padding: '32px' }}
                     >
-                        <h3 id="habit-modal-title" style={{ marginBottom: '24px', fontSize: '20px', fontWeight: 600, color: 'var(--text-main)' }}>New Habit</h3>
+                        <h3 id="habit-modal-title" style={{ marginBottom: '24px', fontSize: '20px', fontWeight: 600, color: 'var(--text-main)' }}>{strings.habitsModal.title}</h3>
 
                         <div style={{ marginBottom: '20px' }}>
-                            <label style={{ fontSize: '14px', color: 'var(--accent)', display: 'block', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase' }}>Icon</label>
-                            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }} role="group" aria-label="Select habit icon">
+                            <label style={{ fontSize: '14px', color: 'var(--accent)', display: 'block', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase' }}>{strings.habitsModal.iconLabel}</label>
+                            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }} role="group" aria-label={strings.habitsModal.iconGroupLabel}>
                                 {ICON_OPTIONS.map(emoji => (
                                     <motion.button
                                         key={emoji}
                                         onClick={() => onIconChange(emoji)}
                                         whileTap={{ scale: 0.9 }}
                                         aria-pressed={habitIcon === emoji}
-                                        aria-label={`Select ${emoji} icon`}
-                                        title={`Select ${emoji} icon`}
+                                        aria-label={strings.habitsModal.iconButtonLabel(emoji)}
+                                        title={strings.habitsModal.iconButtonLabel(emoji)}
                                         style={{
                                             fontSize: '24px',
                                             padding: '8px',
@@ -84,15 +88,15 @@ export const AddHabitModal: React.FC<AddHabitModalProps> = ({
                         </div>
 
                         <div style={{ marginBottom: '32px' }}>
-                            <label htmlFor="habit-name" style={{ fontSize: '14px', color: 'var(--accent)', display: 'block', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase' }}>Habit Name</label>
+                            <label htmlFor="habit-name" style={{ fontSize: '14px', color: 'var(--accent)', display: 'block', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase' }}>{strings.habitsModal.habitNameLabel}</label>
                             <input
                                 id="habit-name"
                                 autoFocus
                                 value={habitName}
                                 onChange={(e) => onNameChange(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' ? onCreate() : null}
-                                placeholder="e.g. Read 10 pages"
-                                aria-label="Habit name"
+                                placeholder={strings.habitsModal.habitNamePlaceholder}
+                                aria-label={strings.habitsModal.habitNameLabel}
                                 aria-required="true"
                                 required
                                 style={{
@@ -113,10 +117,10 @@ export const AddHabitModal: React.FC<AddHabitModalProps> = ({
                             onClick={onCreate}
                             whileTap={{ scale: 0.98 }}
                             className="premium-button"
-                            aria-label="Create new habit"
+                            aria-label={strings.habitsModal.createButtonAria}
                             style={{ width: '100%', padding: '16px', minHeight: '44px' }}
                         >
-                            Create Habit
+                            {strings.habitsModal.createButton}
                         </motion.button>
                     </motion.div>
                 </div>

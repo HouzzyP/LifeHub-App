@@ -1,37 +1,32 @@
 import { test, expect } from '@playwright/test';
+import { NotesPage } from '../pages/notes.page';
 
 test.describe('Notes Module - Navigation and Rendering', () => {
-    test('navigates to notes from home', async ({ page }) => {
+    test('navigates to notes from home via More menu', async ({ page }) => {
         await page.goto('/');
 
         // Verify we're on dashboard
         await expect(page.getByRole('heading', { name: /LifeHub/i })).toBeVisible();
 
-        // Click Notes button
-        const notesButton = page.getByText('Notes', { exact: true });
-        await notesButton.click();
+        // Use page object for navigation (Playwright Best Practices)
+        const notesPage = new NotesPage(page);
+        await notesPage.navigateToNotesViaMore();
 
-        // Wait for page to render
-        await page.waitForTimeout(2000);
-
-        // The page should have some content after clicking Notes
-        // This verifies navigation works
-        const pageBody = page.locator('main').first();
-        await expect(pageBody).toBeVisible();
+        // Verify Notes page content rendered
+        await notesPage.pageContentIsVisible();
     });
 
     test('notes module renders without errors', async ({ page }) => {
         await page.goto('/');
 
-        // Navigate to Notes
-        await page.getByText('Notes', { exact: true }).click();
-        await page.waitForTimeout(1500);
+        // Navigate to Notes via More menu
+        const notesPage = new NotesPage(page);
+        await notesPage.navigateToNotesViaMore();
 
-        // If we get here without errors, navigation worked
-        // Verify page is not showing a blank state or error
-        const content = page.locator('div').filter({ hasText: /Note|note|Search/ }).first();
+        // Verify searchable content exists
+        await notesPage.searchInputIsVisible();
 
-        // Just verify something rendered
-        expect(content).toBeTruthy();
+        // Verify category filters exist (at least "All" should be visible)
+        await notesPage.allCategoryFilterIsVisible();
     });
 });

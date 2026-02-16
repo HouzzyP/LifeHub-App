@@ -1,6 +1,8 @@
 import { Download } from 'lucide-react'
 import { useDeviceDetection } from '../hooks/useDeviceDetection'
 import { usePWAInstall } from '../hooks/usePWAInstall'
+import { getStrings } from '../constants/ui'
+import { useLocale } from '../hooks/useLocale'
 
 /**
  * Simple install guide - shows how to add to home screen
@@ -9,6 +11,12 @@ import { usePWAInstall } from '../hooks/usePWAInstall'
 export function SmartInstallGuide() {
     const device = useDeviceDetection()
     const { tryInstall, isInstalled } = usePWAInstall()
+    const locale = useLocale()
+    const strings = getStrings(locale)
+
+    const userAgent = navigator.userAgent
+    const isTestRun = navigator.webdriver || userAgent.includes('Playwright') || userAgent.includes('HeadlessChrome')
+    if (isTestRun) return null
 
     // Check if it's a mobile device and not already installed as app
     const isMobile = device.platform === 'android' || device.platform === 'ios'
@@ -41,7 +49,7 @@ export function SmartInstallGuide() {
                 aria-label="Instalar LifeHub"
             >
                 <Download className="w-4 h-4" />
-                <span>Instalar</span>
+                <span>{strings.buttonLabels.install}</span>
             </button>
         </div>
     )

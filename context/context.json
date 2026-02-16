@@ -1,0 +1,56 @@
+{
+  "updatedAt": "2026-02-16T20:53:24.064Z",
+  "project": {
+    "name": "tmp-project",
+    "version": "0.0.0"
+  },
+  "locales": [
+    "en",
+    "es"
+  ],
+  "modules": [
+    "dashboard",
+    "gym",
+    "habits",
+    "notes",
+    "finance",
+    "water",
+    "focus"
+  ],
+  "paths": {
+    "app": "src/App.tsx",
+    "strings": "src/constants/ui.ts",
+    "notes": "src/modules/notes",
+    "habits": "src/modules/habits",
+    "dashboard": "src/modules/dashboard"
+  },
+  "git": {
+    "status": "## master...origin/master\n M e2e/tests/notes.spec.ts\n M package.json\n M src/App.tsx\n M src/components/OfflineIndicator.tsx\n M src/components/SmartInstallGuide.tsx\n M src/components/WelcomeModal.tsx\n M src/constants/ui.ts\n M src/hooks/usePWAInstall.ts\n M src/modules/dashboard/Dashboard.tsx\n M src/modules/habits/HabitDashboard.tsx\n M src/modules/habits/components/AddHabitModal.tsx\n M src/modules/habits/components/HabitProgressBar.tsx\n M src/modules/notes/NoteEditor.tsx\n M src/modules/notes/NotesDashboard.tsx\n M src/modules/notes/components/NoteCard.tsx\n M src/modules/notes/components/NotesGrid.tsx\n M src/modules/notes/components/NotesHeader.tsx\n M src/modules/notes/components/NotesPinnedSection.tsx\n?? context/\n?? e2e/pages/\n?? scripts/\n?? src/hooks/useLocale.ts",
+    "changedFiles": [
+      "master...origin/master",
+      "e2e/tests/notes.spec.ts",
+      "package.json",
+      "src/App.tsx",
+      "src/components/OfflineIndicator.tsx",
+      "src/components/SmartInstallGuide.tsx",
+      "src/components/WelcomeModal.tsx",
+      "src/constants/ui.ts",
+      "src/hooks/usePWAInstall.ts",
+      "src/modules/dashboard/Dashboard.tsx",
+      "src/modules/habits/HabitDashboard.tsx",
+      "src/modules/habits/components/AddHabitModal.tsx",
+      "src/modules/habits/components/HabitProgressBar.tsx",
+      "src/modules/notes/NoteEditor.tsx",
+      "src/modules/notes/NotesDashboard.tsx",
+      "src/modules/notes/components/NoteCard.tsx",
+      "src/modules/notes/components/NotesGrid.tsx",
+      "src/modules/notes/components/NotesHeader.tsx",
+      "src/modules/notes/components/NotesPinnedSection.tsx",
+      "context/",
+      "e2e/pages/",
+      "scripts/",
+      "src/hooks/useLocale.ts"
+    ]
+  },
+  "notes": []
+}

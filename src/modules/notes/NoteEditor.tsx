@@ -1,18 +1,12 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { db, type Note } from '../../db/db';
 import { syncManager } from '../../db/syncManager';
 import { ArrowLeft, Pin, Star, Trash2, Eye, Edit3 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useLocale } from '../../hooks/useLocale';
+import { getStrings } from '../../constants/ui';
 
-// Hoisted constants — rendering-hoist-jsx
-const CATEGORIES = ['Personal', 'Work', 'Ideas', 'Health', 'Finance'];
-
-interface NoteEditorProps {
-    noteId?: number;
-    onBack: () => void;
-}
-
-// Simple markdown-to-HTML renderer (bold, italic, headers, lists, code)
+// Hoisted constants — rendering-hoist-jsx (Vercel Best Practices)
 const renderMarkdown = (text: string): string => {
     return text
         .replace(/^### (.+)$/gm, '<h4 style="margin:8px 0;font-size:15px">$1</h4>')
@@ -25,17 +19,33 @@ const renderMarkdown = (text: string): string => {
         .replace(/\n/g, '<br/>');
 };
 
+interface NoteEditorProps {
+    noteId?: number;
+    onBack: () => void;
+}
+
+
 export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onBack }) => {
+    const locale = useLocale();
+    const strings = useMemo(() => getStrings(locale), [locale]); // rerender-memo
+    
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
-    const [category, setCategory] = useState('Personal');
+    const [category, setCategory] = useState<string>('');
     const [isPinned, setIsPinned] = useState(false);
     const [isFavorite, setIsFavorite] = useState(false);
     const [isPreview, setIsPreview] = useState(false);
     const [existingNote, setExistingNote] = useState<Note | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const stateRef = useRef({ title: '', content: '', category: 'Personal', isPinned: false, isFavorite: false, existingNote: null as Note | null });
+    const stateRef = useRef({ title: '', content: '', category: '', isPinned: false, isFavorite: false, existingNote: null as Note | null });
+
+    // Initialize category from strings (only once)
+    useEffect(() => {
+        if (!category && strings.notesUi.categories.length > 0) {
+            setCategory(strings.notesUi.categories[0]);
+        }
+    }, []); // rerender-dependencies: only on mount
 
     // Keep stateRef in sync
     useEffect(() => {
@@ -148,8 +158,8 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onBack }) => {
                 <motion.button
                     onClick={async () => { await saveNote(); onBack(); }}
                     whileTap={{ scale: 0.9 }}
-                    aria-label="Save and return to notes"
-                    title="Save note and return to notes list"
+                    aria-label={strings.notesUi.editor.saveAndReturn}
+                    title={strings.notesUi.editor.saveAndReturn}
                     style={{
                         background: 'none', border: 'none',
                         color: 'var(--accent)', cursor: 'pointer',
@@ -160,16 +170,16 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onBack }) => {
                     }}
                 >
                     <ArrowLeft size={18} />
-                    <span>Notes</span>
+                    <span>{strings.notesUi.editor.backToNotes}</span>
                 </motion.button>
 
                 <div style={{ display: 'flex', gap: '8px' }}>
                     <motion.button
                         onClick={togglePreview}
                         whileTap={{ scale: 0.9 }}
-                        aria-label={isPreview ? 'Edit note' : 'Preview note'}
+                        aria-label={isPreview ? strings.notesUi.editor.edit : strings.notesUi.editor.preview}
                         aria-pressed={isPreview}
-                        title={isPreview ? 'Switch to edit mode' : 'Preview note formatting'}
+                        title={isPreview ? strings.notesUi.editor.editTitle : strings.notesUi.editor.previewTitle}
                         style={{
                             background: isPreview ? 'var(--accent)' : 'var(--bg-glass)',
                             border: '1px solid var(--glass-border)',
@@ -185,9 +195,9 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onBack }) => {
                     <motion.button
                         onClick={togglePin}
                         whileTap={{ scale: 0.9 }}
-                        aria-label={isPinned ? 'Unpin note' : 'Pin note'}
+                        aria-label={isPinned ? strings.notesUi.editor.unpin : strings.notesUi.editor.pin}
                         aria-pressed={isPinned}
-                        title={isPinned ? 'Remove from pinned' : 'Pin to top of list'}
+                        title={isPinned ? strings.notesUi.editor.unpinTitle : strings.notesUi.editor.pinTitle}
                         style={{
                             background: isPinned ? 'var(--accent)' : 'var(--bg-glass)',
                             border: '1px solid var(--glass-border)',
@@ -203,9 +213,9 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onBack }) => {
                     <motion.button
                         onClick={toggleFavorite}
                         whileTap={{ scale: 0.9 }}
-                        aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                        aria-label={isFavorite ? strings.notesUi.editor.unfavorite : strings.notesUi.editor.favorite}
                         aria-pressed={isFavorite}
-                        title={isFavorite ? 'Remove star' : 'Mark as favorite'}
+                        title={isFavorite ? strings.notesUi.editor.unfavoriteTitle : strings.notesUi.editor.favoriteTitle}
                         style={{
                             background: isFavorite ? '#fbbf24' : 'var(--bg-glass)',
                             border: '1px solid var(--glass-border)',
@@ -222,8 +232,8 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onBack }) => {
                         <motion.button
                             onClick={deleteNote}
                             whileTap={{ scale: 0.9 }}
-                            aria-label="Delete note"
-                            title="Delete this note permanently"
+                            aria-label={strings.notesUi.editor.delete}
+                            title={strings.notesUi.editor.deleteTitle}
                             style={{
                                 background: 'var(--bg-glass)',
                                 border: '1px solid var(--glass-border)',
@@ -241,11 +251,13 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onBack }) => {
 
             {/* Category chips */}
             <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
-                {CATEGORIES.map(cat => (
+                {strings.notesUi.categories.map(cat => (
                     <motion.button
                         key={cat}
                         onClick={() => setCategory(cat)}
                         whileTap={{ scale: 0.95 }}
+                        aria-pressed={category === cat}
+                        aria-label={strings.notesUi.categoryDefaults[cat as keyof typeof strings.notesUi.categoryDefaults]?.label || cat}
                         style={{
                             padding: '6px 14px',
                             borderRadius: '20px',
@@ -255,10 +267,11 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onBack }) => {
                             color: category === cat ? 'var(--bg-primary)' : 'var(--text-dim)',
                             border: `1px solid ${category === cat ? 'var(--accent)' : 'var(--glass-border)'}`,
                             cursor: 'pointer',
-                            transition: 'all 0.2s ease'
+                            transition: 'all 0.2s ease',
+                            minHeight: '44px'
                         }}
                     >
-                        {cat}
+                        {strings.notesUi.categoryDefaults[cat as keyof typeof strings.notesUi.categoryDefaults]?.label || cat}
                     </motion.button>
                 ))}
             </div>
@@ -267,8 +280,8 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onBack }) => {
             <input
                 value={title}
                 onChange={e => setTitle(e.target.value)}
-                placeholder="Note title..."
-                aria-label="Note title"
+                placeholder={strings.notesUi.editor.titlePlaceholder}
+                aria-label={strings.notesUi.editor.titlePlaceholder}
                 aria-required="true"
                 required
                 style={{
@@ -298,14 +311,14 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onBack }) => {
                         fontSize: '15px',
                         color: 'var(--text-main)'
                     }}
-                    dangerouslySetInnerHTML={{ __html: renderMarkdown(content || '*No content yet...*') }}
+                    dangerouslySetInnerHTML={{ __html: renderMarkdown(content || strings.notesUi.editor.emptyContentPreview) }}
                 />
             ) : (
                 <textarea
                     value={content}
                     onChange={e => setContent(e.target.value)}
-                    placeholder="Start writing... (supports **bold**, *italic*, # headers, - lists, `code`)"
-                    aria-label="Note content"
+                    placeholder={strings.notesUi.editor.contentPlaceholder}
+                    aria-label={strings.notesUi.editor.contentPlaceholder}
                     aria-describedby="content-help"
                     style={{
                         width: '100%',
@@ -326,7 +339,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId, onBack }) => {
 
             {/* Auto-save indicator */}
             <p style={{ textAlign: 'center', color: isSaving ? 'var(--accent)' : 'var(--text-dim)', fontSize: '12px', marginTop: '16px', fontWeight: isSaving ? 600 : 400 }} role="status" aria-live="polite" aria-atomic="true">
-                {isSaving ? '💾 Saving...' : '✓ Auto-saved'}
+                {isSaving ? `💾 ${strings.notesUi.editor.saving}` : `✓ ${strings.notesUi.editor.saved}`}
             </p>
         </div>
     );

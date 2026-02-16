@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { INSTALL_MESSAGES } from '../constants/ui'
+import { getStrings } from '../constants/ui'
 
 interface BeforeInstallPromptEvent extends Event {
     prompt: () => Promise<void>
@@ -83,7 +83,7 @@ export function usePWAInstall() {
             await install()
         } else {
             // beforeinstallprompt didn't fire, show manual instructions
-            alert(INSTALL_MESSAGES.fallbackInstructions)
+            alert(getStrings().installMessages.fallbackInstructions)
         }
     }
 

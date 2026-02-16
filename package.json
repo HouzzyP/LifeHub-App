@@ -9,7 +9,8 @@
         "lint": "eslint .",
         "preview": "vite preview",
         "test:e2e": "playwright test",
-        "generate:icons": "node generate-icons.mjs"
+        "generate:icons": "node generate-icons.mjs",
+        "context:snapshot": "node scripts/context-snapshot.mjs"
     },
     "dependencies": {
         "dexie": "^4.3.0",

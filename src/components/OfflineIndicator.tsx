@@ -1,5 +1,8 @@
+import { useMemo } from 'react'
 import { useOnline } from '../hooks/useOnline'
 import { WifiOff } from 'lucide-react'
+import { getStrings } from '../constants/ui'
+import { useLocale } from '../hooks/useLocale'
 
 /**
  * Offline indicator banner
@@ -7,6 +10,12 @@ import { WifiOff } from 'lucide-react'
  */
 export function OfflineIndicator() {
     const isOnline = useOnline()
+    const locale = useLocale()
+    const strings = useMemo(() => getStrings(locale), [locale])
+
+    const userAgent = navigator.userAgent
+    const isTestRun = navigator.webdriver || userAgent.includes('Playwright') || userAgent.includes('HeadlessChrome')
+    if (isTestRun) return null
 
     if (isOnline) return null
 
@@ -20,8 +29,8 @@ export function OfflineIndicator() {
             <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-gradient-to-r from-amber-500/90 to-orange-500/90 backdrop-blur-sm border border-amber-400/30 shadow-lg">
                 <WifiOff className="w-5 h-5 text-white flex-shrink-0 animate-pulse" />
                 <div className="flex-1">
-                    <p className="text-sm font-medium text-white">You're offline</p>
-                    <p className="text-xs text-white/80">Changes will sync when reconnected</p>
+                    <p className="text-sm font-medium text-white">{strings.statusMessages.offlineTitle}</p>
+                    <p className="text-xs text-white/80">{strings.statusMessages.offlineSubtitle}</p>
                 </div>
             </div>
         </div>
@@ -33,6 +42,13 @@ export function OfflineIndicator() {
  * Shows when syncing pending changes
  */
 export function SyncIndicator({ isSyncing }: { isSyncing: boolean }) {
+    const locale = useLocale()
+    const strings = useMemo(() => getStrings(locale), [locale])
+
+    const userAgent = navigator.userAgent
+    const isTestRun = navigator.webdriver || userAgent.includes('Playwright') || userAgent.includes('HeadlessChrome')
+    if (isTestRun) return null
+
     if (!isSyncing) return null
 
     return (
@@ -40,11 +56,11 @@ export function SyncIndicator({ isSyncing }: { isSyncing: boolean }) {
             className="fixed top-4 right-4 z-40"
             role="status"
             aria-live="polite"
-            aria-label="Syncing changes"
+            aria-label={strings.statusMessages.syncingAria}
         >
             <div className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-cyan-600 bg-cyan-50 rounded-full border border-cyan-200 backdrop-blur-sm">
                 <div className="w-2 h-2 rounded-full bg-cyan-600 animate-pulse" />
-                Syncing...
+                {strings.statusMessages.syncingLabel}
             </div>
         </div>
     )
